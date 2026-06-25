@@ -11,6 +11,7 @@ const SUITES = [
   ['ESTIMATE → ACTIVE PROJECT (contract value)', require('./activate.test').BODY],
   ['PROJECT BUDGET (signed rounded pricing)', require('./budget.test').BODY],
   ['EDIT JOB # / NAME (from the estimate sheet)', require('./editmeta.test').BODY],
+  ['VERSION HISTORY (per-estimate scope)', require('./history.test').BODY],
 ];
 
 (async () => {
