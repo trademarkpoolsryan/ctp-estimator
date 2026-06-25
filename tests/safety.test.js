@@ -19,7 +19,7 @@ const BODY = `
     ok(/ASTM F1346-23/.test(html), 'cover line present');
     ok(/§115922/.test(html) && /informed you of the Swimming Pool Safety Act/.test(html), 'disclosure present');
     ok(/no greater than 4/.test(html), 'fence note present');
-    ok(!/opens toward the street, not the backyard/.test(html), 'no gate note (gate not selected)');
+    ok(!/rebuilt to meet the requirement/.test(html), 'no gate note (gate not selected)');
     ok(!/ctp-safe-warn/.test(html), 'no min-2 warning element at 2 features');
   });
 
@@ -34,6 +34,8 @@ const BODY = `
     const html = ctpSafetyContentHTML();
     const alarmNoteCount = (html.match(/installation is the homeowner/g) || []).length;
     ok(alarmNoteCount === 1, 'shared alarm note appears exactly once, got ' + alarmNoteCount);
+    ok(/CTP supplies the safety alarms/.test(html), 'alarm note: CTP supplies the alarms');
+    ok(/does not install them/.test(html), 'alarm note: CTP does not install them');
     ok(/over 18 inches deep/.test(html), 'pool-alarm 18-inch note present');
     ok(/ASTM F2208/.test(html), 'pool alarm line present');
   });
@@ -63,8 +65,9 @@ const BODY = `
     clearAll(); setSafe('door',true); setSafe('gate',true);
     const sec = ctpSafetyProposalSection();
     ok(/safety-section/.test(sec) && /SWIMMING POOL SAFETY ACT/.test(sec), 'section header present');
-    ok(/release at least 54/.test(sec), 'door line in section');
-    ok(/self-latching latch/i.test(sec), 'gate line in section');
+    ok(/release at least 60/.test(sec), 'device line (60" release) in section');
+    ok(/Reversal of the gate/i.test(sec), 'gate line in section');
+    ok(/\\$300/.test(sec) && /\\$500/.test(sec), 'gate rebuild fee ($300–$500) note in section');
   });
 
   T('SAF7 live preview updates as boxes toggle; reset clears them', () => {
