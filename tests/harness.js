@@ -49,6 +49,7 @@ function report(title, results, pageErrors) {
 const PAGE_HELPERS = `
   const __out = [];
   function T(name, fn){ try { fn(); __out.push({name, pass:true}); } catch(e){ __out.push({name, pass:false, err:e.message}); } }
+  async function TA(name, fn){ try { await fn(); __out.push({name, pass:true}); } catch(e){ __out.push({name, pass:false, err:e.message}); } }
   function ok(c, m){ if(!c) throw new Error(m || 'assert failed'); }
   function close(a, b, m, t){ t = t==null?1e-3:t; if(Math.abs(a-b)>t) throw new Error((m||'')+' expected '+b+' got '+a); }
   function fire(el, type){ el.dispatchEvent(new Event(type, {bubbles:true})); }
@@ -61,7 +62,7 @@ const PAGE_HELPERS = `
 async function runSuite(title, body) {
   const { browser, page, pageErrors } = await openApp();
   try {
-    const results = await page.evaluate(`(() => { ${PAGE_HELPERS}\n${body}\nreturn __out; })()`);
+    const results = await page.evaluate(`(async () => { ${PAGE_HELPERS}\n${body}\nreturn __out; })()`);
     const failures = report(title, results, pageErrors);
     return failures ? 1 : 0;
   } finally {

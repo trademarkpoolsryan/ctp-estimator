@@ -12,6 +12,7 @@ const SUITES = [
   ['PROJECT BUDGET (signed rounded pricing)', require('./budget.test').BODY],
   ['EDIT JOB # / NAME (from the estimate sheet)', require('./editmeta.test').BODY],
   ['VERSION HISTORY (per-estimate scope)', require('./history.test').BODY],
+  ['CLIENT PORTAL (priming + send-message)', require('./clientportal.test').BODY],
 ];
 
 (async () => {
