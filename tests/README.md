@@ -40,6 +40,7 @@ is auto-detected; no `playwright install` needed.
 | `editmeta.test.js`    | Edit Job # / name from the estimate sheet (`editSavedEstimate`/`confirmEditEstimate`): canonical relabel, blank/duplicate Job # rejected |
 | `history.test.js`     | Version history scoped to the open estimate (`_estSnapBelongsToCurrent`), not the global snapshot ring |
 | `clientportal.test.js`| Client portal data-priming + send-message: `Backend.setLocalRaw`, `jpReloadFromLocal`, compose UI render, offline-error + success append |
+| `safety.test.js`      | Pool Safety Act §115922: checklist → generated proposal section + live preview, conditional notes (fence/gate/alarm once/pool-alarm), min-2 warning, persistence |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

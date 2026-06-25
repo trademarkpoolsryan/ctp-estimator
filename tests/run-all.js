@@ -13,6 +13,7 @@ const SUITES = [
   ['EDIT JOB # / NAME (from the estimate sheet)', require('./editmeta.test').BODY],
   ['VERSION HISTORY (per-estimate scope)', require('./history.test').BODY],
   ['CLIENT PORTAL (priming + send-message)', require('./clientportal.test').BODY],
+  ['POOL SAFETY ACT §115922 (checklist → proposal)', require('./safety.test').BODY],
 ];
 
 (async () => {
