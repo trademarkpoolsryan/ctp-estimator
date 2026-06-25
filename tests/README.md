@@ -41,6 +41,7 @@ is auto-detected; no `playwright install` needed.
 | `history.test.js`     | Version history scoped to the open estimate (`_estSnapBelongsToCurrent`), not the global snapshot ring |
 | `clientportal.test.js`| Client portal data-priming + send-message: `Backend.setLocalRaw`, `jpReloadFromLocal`, compose UI render, offline-error + success append |
 | `safety.test.js`      | Pool Safety Act §115922: checklist → generated proposal section + live preview, conditional notes (fence/gate/alarm once/pool-alarm), min-2 warning, persistence |
+| `navhistory.test.js`  | Browser Back/Forward stays in-app: each `nav()` records a history entry; `back()`/`forward()` step through in-app pages; null-state popstate is a no-op |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export
