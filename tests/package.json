@@ -1,0 +1,12 @@
+{
+  "name": "ctp-estimator-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Real-browser tests for the estimator's top-down target pricing.",
+  "scripts": {
+    "test": "node run-all.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}
