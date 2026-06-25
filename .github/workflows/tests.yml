@@ -1,0 +1,43 @@
+name: Browser tests
+
+# Runs the real-browser test suite (Playwright + Chromium) on every PR into main and
+# on pushes to main. The suite loads the actual index.html and drives the shipped
+# estimator/pricing code — no login or live network needed (Supabase/CDN failures are
+# expected offline and filtered out by the harness).
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+# Cancel an in-flight run if newer commits land on the same ref.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install test deps (playwright-core)
+        run: npm install
+
+      # Install a Chromium whose revision matches playwright-core 1.49.0. The harness auto-detects
+      # the bundled browser under /opt/pw-browsers when present (local/dev) and otherwise falls back
+      # to Playwright's default resolution, which finds the browser this step installs.
+      - name: Install matching Chromium
+        run: npx --yes playwright@1.49.0 install --with-deps chromium
+
+      - name: Run browser test suite
+        run: node run-all.js

@@ -1,5 +1,9 @@
 # Browser tests — top-down target pricing
 
+[![Browser tests](https://github.com/trademarkpoolsryan/ctp-estimator/actions/workflows/tests.yml/badge.svg)](https://github.com/trademarkpoolsryan/ctp-estimator/actions/workflows/tests.yml)
+
+> CI runs this suite on every PR into `main` and on pushes to `main` (see `.github/workflows/tests.yml`).
+
 Real-browser tests for the estimator's target-pricing feature. They load the actual
 `index.html` in headless Chromium (Playwright) and drive the **real shipped code** —
 no reimplementation, no mocks of the pricing engine.
