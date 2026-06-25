@@ -32,6 +32,7 @@ is auto-detected; no `playwright install` needed.
 | `e2e-ui.test.js`      | Full UI: header/section/line targets driven through real DOM `change` events; pin & unpin |
 | `rounding.test.js`    | Round mode: sheet = proposal = budget = sum-of-rounded-leaves; multiple-of-increment; DOM totals bar; GP honesty; the Round toggle button |
 | `activate.test.js`    | Estimate → Active Project: contract value uses the estimate's rounded displayed grand (`estSnapDisp`), not a raw cost×markup sum |
+| `budget.test.js`      | Job Portal budget (`budgetSheet`) shows the estimate's signed rounded pricing (apportioned per its stored Round state), not the raw total |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export
