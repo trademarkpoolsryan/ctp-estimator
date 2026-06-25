@@ -44,6 +44,19 @@ const BODY = `
     const g2 = m2 ? parseFloat(m2[1].replace(/,/g,'')) : NaN;
     close(g2, rawGrand, 'Round-off snapshot -> exact total', 0.5);
   });
+  T('BUD4 a credit/discount section is preserved (not zeroed) and lowers the grand', () => {
+    const withDisc = JSON.parse(JSON.stringify(estLines));
+    withDisc.push({ group:'Family & Friend Discount', _tmplId:'DISC',
+      items:[{ desc:'CTP Family & Friend Discount', detail:'Family discount', qty:1, cost:-2000, markup:0 }] });
+    const snapD = { id: 880033, num:'EST-8803', customer:'Brian', label:'x', roundToHundred:true, lines: withDisc };
+    const expected = Math.round(estSnapDisp(snapD).grand);
+    const h = window.jpBudgetSheet({ est: snapD });
+    const mm = h.match(/SUBTOTAL[\\s\\S]*?font-weight:800[^>]*>\\$(-?[\\d,]+\\.\\d{2})/);
+    const shown = mm ? parseFloat(mm[1].replace(/,/g,'')) : NaN;
+    close(shown, expected, 'budget grand matches estSnapDisp (discount applied)', 0.5);
+    close(shown, roundedGrand - 2000, 'grand is exactly $2,000 lower than without the discount', 0.5);
+    ok(/-\\$2,000\\.00|\\$-2,000\\.00/.test(h), 'the -$2,000 discount shows in the budget (not $0)');
+  });
 `;
 
 if (require.main === module) runSuite('PROJECT BUDGET (signed rounded pricing)', BODY).then(code => process.exit(code));

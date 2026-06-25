@@ -120,6 +120,20 @@ const BODY = `
     ok(window._roundToHundred === true, 'manual ON preserved after exit');
     window._roundToHundred = false;
   });
+
+  // ===== Credit / discount section (negative value) — must NOT be zeroed =====
+  T('RND16 a negative discount section keeps its value; grand includes it; everything adds up', () => {
+    window._roundToHundred = true; window._roundAmount = 100;
+    const disc = { group:'Family & Friend Discount', _tmplId:'DISC',
+      items:[{ desc:'CTP Family & Friend Discount', detail:'Family discount', qty:1, cost:-2000, markup:0 }] };
+    estLines.push(disc);
+    let ls = 0; (disc.items||[]).forEach(it => { ls += _dispLeaf(it, estLines); });
+    close(ls, -2000, 'discount line apportions to -2000, not 0', 0.5);
+    close(_groupDispPrice(disc), -2000, 'discount section subtotal == -2000', 0.5);
+    let all = 0; estLines.forEach(g => (g.items||[]).forEach(it => { all += _dispLeaf(it, estLines); }));
+    close(all, estDispGrand(estLines), 'every line (incl. credit) sums to the grand', 0.05);
+    estLines.pop(); // restore
+  });
 `;
 
 if (require.main === module) runSuite('ROUNDING — TOP-DOWN APPORTIONMENT (real estimate)', BODY).then(code => process.exit(code));
