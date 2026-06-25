@@ -1,7 +1,8 @@
-// Rounding mode — cross-surface consistency on a REAL seed-template estimate. The whole point of
-// the feature: with Round ON, the sheet, the proposal, and the budget must all show the SAME numbers
-// and every subtotal must add up to the bottom line. This proves it against the real shipped
-// roundPrice / _groupDispPrice / estDispGrand / estTotals and the live totals bar.
+// Rounding mode — cross-surface consistency on a REAL seed-template estimate. With Round ON the model
+// is TOP-DOWN: the grand and section subtotals are clean multiples of the increment, the grand is the
+// CLOSEST clean number to the true total, line prices stay real (never $0), and everything still adds
+// up (lines → subtotal → grand). Proven against the real shipped _computeRoundedDisp / _dispLeaf /
+// _groupDispPrice / estDispGrand / estTotals and the live totals bar.
 const { runSuite } = require('./harness');
 
 const BODY = `
@@ -12,16 +13,12 @@ const BODY = `
   addTmplToEst('Pool 1 Base Estimate Tempate'); addTmplToEst('Spa');
   applySmartQuantities(450, 90, 'Pool 1 Base Estimate Tempate');
 
-  // visible line price (matches _groupDispPrice's q!==0 filter)
-  function leafSum(round){
-    let s = 0;
-    (estLines||[]).forEach(g => (g.items||[]).forEach(it => {
-      const q = it.qty||0; if (q === 0) return;
-      const lp = q * (it.cost||0) * (1 + (it.markup||0)/100);
-      s += round ? roundPrice(lp) : lp;
-    }));
-    return s;
-  }
+  function trueOf(g){ return (g.items||[]).reduce((s,it)=>{ const q=it.qty||0; return q===0?s:s+q*(it.cost||0)*(1+(it.markup||0)/100); }, 0); }
+  function poolTrue(opt){ return (estLines||[]).filter(g=>!!g._isOptional===opt).reduce((s,g)=>s+trueOf(g),0); }
+  function roundInc(v,inc){ return Math.round(v/inc)*inc; }
+  function expectedGrand(inc){ return roundInc(poolTrue(false),inc)+roundInc(poolTrue(true),inc); }
+  function dispLeaf(it){ return _dispLeaf(it, estLines); }
+  function nPools(){ return [false,true].filter(o=>poolTrue(o)>0).length; }
   function moneyFromEl(id){ const el = document.getElementById(id); return el ? parseFloat((el.textContent||'').replace(/[$,]/g,''))||0 : NaN; }
 
   // ===== Round OFF: exact, nothing rounded =====
@@ -36,41 +33,41 @@ const BODY = `
   renderEst(); updateTotals();
   const rawTotal = estTotals(estLines).totalPrice;     // exact cost x markup (honest, flag-independent)
 
-  T('RND2 grand total = sum of rounded leaves (the canonical rule)', () => {
-    close(estDispGrand(estLines), leafSum(true), 'estDispGrand == Sigma roundPrice(line)', 0.01);
+  T('RND2 grand = the CLOSEST clean number to the true total (per base/optional pool)', () => {
+    close(estDispGrand(estLines), expectedGrand(100), 'grand == round(true) to $100', 0.01);
   });
-  T('RND3 grand total is a clean multiple of the $100 increment', () => {
-    const g = estDispGrand(estLines); close(g % 100, 0, 'multiple of 100 (got remainder)', 0.001);
+  T('RND3 grand is a clean multiple of the $100 increment', () => {
+    close(estDispGrand(estLines) % 100, 0, 'multiple of 100', 0.001);
   });
-  T('RND4 every section subtotal = sum of its rounded lines, and is itself a multiple of $100', () => {
+  T('RND4 every section subtotal is a multiple of $100 AND they sum to the grand', () => {
+    let sum = 0;
+    (estLines||[]).forEach((g,i) => { const sub = _groupDispPrice(g); close(sub % 100, 0, 'section '+i+' multiple of 100', 0.001); sum += sub; });
+    close(sum, estDispGrand(estLines), 'section subtotals sum to grand', 0.01);
+  });
+  T('RND5 within each section the LINE prices sum exactly to the clean subtotal', () => {
     (estLines||[]).forEach((g,i) => {
-      let secLeaf = 0;
-      (g.items||[]).forEach(it => { const q=it.qty||0; if(q===0) return; secLeaf += roundPrice(q*(it.cost||0)*(1+(it.markup||0)/100)); });
-      close(_groupDispPrice(g), secLeaf, 'section '+i+' = sum of rounded lines', 0.01);
-      close(_groupDispPrice(g) % 100, 0, 'section '+i+' multiple of 100', 0.001);
+      let ls = 0; (g.items||[]).forEach(it => { ls += dispLeaf(it); });
+      close(ls, _groupDispPrice(g), 'section '+i+' lines add up to subtotal', 0.02);
     });
   });
-  T('RND5 PROPOSAL formula == SHEET formula (section-rounded sum == leaf-rounded sum)', () => {
-    // Sheet/budget: estDispGrand = sum of _groupDispPrice. Proposal: sum of roundPrice(sectionPrice)
-    // (idempotent guard on an already-leaf-rounded section). Both must equal the pure leaf sum.
-    const sheet = estDispGrand(estLines);
-    const proposalStyle = (estLines||[]).reduce((s,g)=>s + roundPrice(_groupDispPrice(g)), 0);
-    close(sheet, proposalStyle, 'proposal-style == sheet', 0.01);
-    close(sheet, leafSum(true), 'both == pure leaf sum', 0.01);
+  T('RND6 no real (nonzero) line ever displays as $0', () => {
+    (estLines||[]).forEach(g => (g.items||[]).forEach(it => {
+      const t = (it.qty||0)*(it.cost||0)*(1+(it.markup||0)/100);
+      if (t > 0.005) ok(dispLeaf(it) > 0.005, 'a $'+t.toFixed(2)+' line stayed nonzero');
+    }));
   });
-  T('RND6 BUDGET value path (Math.round(estDispGrand)) matches the sheet', () => {
-    close(Math.round(estDispGrand(estLines)), Math.round(leafSum(true)), 'budget == sheet', 0.5);
+  T('RND7 grand is within half an increment per pool of the exact total (closest possible)', () => {
+    ok(Math.abs(estDispGrand(estLines) - (poolTrue(false)+poolTrue(true))) <= 50*nPools() + 1, 'within $50/pool of exact');
   });
-  T('RND7 live totals bar (#tot-price / #sticky-price DOM) == estDispGrand', () => {
-    const dom = moneyFromEl('tot-price'); const sticky = moneyFromEl('sticky-price');
-    close(dom, estDispGrand(estLines), 'tot-price DOM == estDispGrand', 0.5);
-    close(sticky, estDispGrand(estLines), 'sticky-price DOM == estDispGrand', 0.5);
+  T('RND8 PROPOSAL leaf-sum (sum of apportioned line prices) == the grand', () => {
+    let p = 0; (estLines||[]).forEach(g => (g.items||[]).forEach(it => { p += dispLeaf(it); }));
+    close(p, estDispGrand(estLines), 'proposal sum == sheet grand', 0.05);
   });
-  T('RND8 rounding stays within tolerance of the exact price (<= half-increment per line)', () => {
-    const lines = (estLines||[]).reduce((n,g)=>n+(g.items||[]).filter(it=>(it.qty||0)!==0).length,0);
-    ok(Math.abs(estDispGrand(estLines) - rawTotal) <= lines * 50 + 1, 'within +/- $50 per line of exact');
+  T('RND9 live totals bar (#tot-price / #sticky-price DOM) == estDispGrand', () => {
+    close(moneyFromEl('tot-price'), estDispGrand(estLines), 'tot-price DOM == grand', 0.5);
+    close(moneyFromEl('sticky-price'), estDispGrand(estLines), 'sticky-price DOM == grand', 0.5);
   });
-  T('RND9 GP honesty: toggling Round never mutates cost or markup (raw total unchanged)', () => {
+  T('RND10 GP honesty: toggling Round never mutates cost or markup (raw total unchanged)', () => {
     const before = estTotals(estLines).totalPrice;
     window._roundToHundred = false; const off = estTotals(estLines).totalPrice;
     window._roundToHundred = true;  const on  = estTotals(estLines).totalPrice;
@@ -79,22 +76,23 @@ const BODY = `
   });
 
   // ===== Increment change to $500 =====
-  T('RND10 increment $500 -> grand is a multiple of 500 and equals sum of @500 rounded leaves', () => {
+  T('RND11 increment $500 -> grand & sections are multiples of 500, grand closest-clean to true', () => {
     window._roundAmount = 500;
-    const g = estDispGrand(estLines);
-    close(g % 500, 0, 'multiple of 500', 0.001);
-    close(g, leafSum(true), 'equals Sigma roundPrice@500(line)', 0.01);
+    close(estDispGrand(estLines), expectedGrand(500), '@500 closest clean', 0.01);
+    close(estDispGrand(estLines) % 500, 0, 'grand multiple of 500', 0.001);
+    (estLines||[]).forEach((g,i) => close(_groupDispPrice(g) % 500, 0, 'section '+i+' multiple of 500', 0.001));
+    ok(Math.abs(estDispGrand(estLines) - (poolTrue(false)+poolTrue(true))) <= 250*nPools() + 1, 'within $250/pool of exact');
     window._roundAmount = 100; // restore
   });
 
   // ===== The Round toggle BUTTON (the field control) =====
-  T('RND11 Round button exists in the estimate toolbar', () => {
+  T('RND12 Round button exists in the estimate toolbar', () => {
     ok(document.getElementById('btn-round-mode'), '#btn-round-mode present');
   });
-  T('RND12 clicking Round flips the mode, snaps the total, and updates the button label', () => {
+  T('RND13 clicking Round flips the mode, snaps the total clean, restores exact when off', () => {
     window._roundToHundred = false; window._roundAmount = 100; syncRoundButtons();
     const btn = document.getElementById('btn-round-mode');
-    btn.click();                                  // -> toggleRoundMode()
+    btn.click();
     ok(window._roundToHundred === true, 'mode ON after click');
     ok(/Round: ON/.test(btn.innerHTML), 'label shows ON: ' + btn.innerHTML);
     close(estDispGrand(estLines) % 100, 0, 'total snapped to a multiple of 100', 0.001);
@@ -104,25 +102,25 @@ const BODY = `
   });
 
   // ===== Auto-Round when Field Mode turns on =====
-  T('RND13 entering Field Mode auto-enables Round; exiting restores prior (off)', () => {
+  T('RND14 entering Field Mode auto-enables Round; exiting restores prior (off)', () => {
     window._roundToHundred = false; window._clientMode = false; delete window._roundBeforeField;
-    toggleClientMode();                         // enter Field Mode
+    toggleClientMode();
     ok(window._clientMode === true, 'Field Mode on');
     ok(window._roundToHundred === true, 'Round auto-enabled in Field Mode');
     close(estDispGrand(estLines) % 100, 0, 'client-facing total is clean', 0.001);
-    toggleClientMode();                         // exit Field Mode
+    toggleClientMode();
     ok(window._clientMode === false, 'Field Mode off');
     ok(window._roundToHundred === false, 'Round restored to prior off-state');
   });
-  T('RND14 Field Mode preserves a manually-ON Round when you exit', () => {
+  T('RND15 Field Mode preserves a manually-ON Round when you exit', () => {
     window._roundToHundred = true; window._clientMode = false; delete window._roundBeforeField;
-    toggleClientMode();                         // enter (Round already on)
+    toggleClientMode();
     ok(window._roundToHundred === true, 'still on inside Field Mode');
-    toggleClientMode();                         // exit -> restore to ON
+    toggleClientMode();
     ok(window._roundToHundred === true, 'manual ON preserved after exit');
-    window._roundToHundred = false;             // cleanup
+    window._roundToHundred = false;
   });
 `;
 
-if (require.main === module) runSuite('ROUNDING — CROSS-SURFACE CONSISTENCY (real estimate)', BODY).then(code => process.exit(code));
+if (require.main === module) runSuite('ROUNDING — TOP-DOWN APPORTIONMENT (real estimate)', BODY).then(code => process.exit(code));
 module.exports = { BODY };
