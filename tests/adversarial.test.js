@@ -32,9 +32,14 @@ const BODY = `
     const pa=P(a), pb=P(b); setSectionTarget(0,'$800');
     close(SP(estLines[0]),800); close(P(a)/P(b), pa/pb, 'proportional to current prices');
   });
-  T('ADV5 roundPrice is identity (Finalize/rounding removed)', () => {
+  T('ADV5 roundPrice snaps to the nearest increment (default $100)', () => {
     ok(typeof roundPrice === 'function');
-    [0, 1, 49.99, 50, 1234.56, 99, 100.01, 7500.07].forEach(v => close(roundPrice(v), v, 'roundPrice('+v+')'));
+    window._roundAmount = 100;
+    [[1234.56,1200],[1250,1300],[7500.07,7500],[49,0],[51,100],[99,100],[0,0]]
+      .forEach(([v,exp]) => close(roundPrice(v), exp, 'roundPrice('+v+')'));
+    window._roundAmount = 500;
+    [[1234.56,1000],[1250,1500],[7600,7500]].forEach(([v,exp]) => close(roundPrice(v), exp, '@500 roundPrice('+v+')'));
+    window._roundAmount = 100; // restore
   });
   T('ADV6 no double-application under nested solve (re-entrancy guard)', () => {
     const a=item(1,100,0), b=item(1,300,0); const g={items:[a,b], _tmplId:'T'}; setEst([g]);

@@ -30,6 +30,7 @@ is auto-detected; no `playwright install` needed.
 | `adversarial.test.js` | Parent pins, parent re-flex, multi-free shape, re-entrancy guard, `roundPrice` identity, deep credits |
 | `e2e-build.test.js`   | Builds a real Pool Base + Spa from seed templates; targets flow to `estTotals` exactly |
 | `e2e-ui.test.js`      | Full UI: header/section/line targets driven through real DOM `change` events; pin & unpin |
+| `rounding.test.js`    | Round mode: sheet = proposal = budget = sum-of-rounded-leaves; multiple-of-increment; DOM totals bar; GP honesty; the Round toggle button |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

@@ -44,5 +44,18 @@ honest. A node you set is PINNED (`_priceLocked` / `_targetPrice`); a group targ
 flows into UNPINNED descendants, proportional to current price. Everything
 downstream recomputes price from cost×markup. Key fns: `markupForPrice`,
 `distributeProportional`, `setLineTarget` / `setSectionTarget` / `setParentTarget`,
-`resolveAncestors`, `reapplyPriceLocks`. Finalize/rounding was removed —
-`roundPrice` is now identity.
+`resolveAncestors`, `reapplyPriceLocks`.
+
+## Round mode (field-friendly clean numbers)
+Separate from target pricing. The **Round** toolbar button (and Settings →
+"Start estimates with Round on" + increment) toggles `window._roundToHundred`;
+`window._roundAmount` is the increment (default $100). When ON, `roundPrice`
+snaps every displayed price to the NEAREST increment through one function, and the
+canonical rule holds everywhere: **a subtotal is the SUM of its rounded line items
+(rounded leaves), never a re-rounded aggregate.** That's what keeps sheet =
+proposal = budget all adding to the same bottom line (`_groupDispPrice`,
+`estDispGrand`, and the proposal's per-line `roundPrice` all follow it). Round is
+a *display* mode — costs/markups/targets are untouched, so toggling OFF restores
+exact prices. Default OFF for new estimates; saved estimates restore their own
+stored `roundToHundred`. Toggle fns: `toggleRoundMode`, `syncRoundButtons`.
+Cross-surface consistency is locked down by `tests/rounding.test.js`.

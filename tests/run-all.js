@@ -7,6 +7,7 @@ const SUITES = [
   ['ADVERSARIAL', require('./adversarial.test').BODY],
   ['END-TO-END BUILD (real seed-template estimate)', require('./e2e-build.test').BODY],
   ['FULL UI END-TO-END (real estimate, real DOM events)', require('./e2e-ui.test').BODY],
+  ['ROUNDING — CROSS-SURFACE CONSISTENCY (real estimate)', require('./rounding.test').BODY],
 ];
 
 (async () => {
