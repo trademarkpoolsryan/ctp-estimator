@@ -31,6 +31,7 @@ is auto-detected; no `playwright install` needed.
 | `e2e-build.test.js`   | Builds a real Pool Base + Spa from seed templates; targets flow to `estTotals` exactly |
 | `e2e-ui.test.js`      | Full UI: header/section/line targets driven through real DOM `change` events; pin & unpin |
 | `rounding.test.js`    | Round mode: sheet = proposal = budget = sum-of-rounded-leaves; multiple-of-increment; DOM totals bar; GP honesty; the Round toggle button |
+| `activate.test.js`    | Estimate → Active Project: contract value uses the estimate's rounded displayed grand (`estSnapDisp`), not a raw cost×markup sum |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

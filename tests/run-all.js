@@ -8,6 +8,7 @@ const SUITES = [
   ['END-TO-END BUILD (real seed-template estimate)', require('./e2e-build.test').BODY],
   ['FULL UI END-TO-END (real estimate, real DOM events)', require('./e2e-ui.test').BODY],
   ['ROUNDING — CROSS-SURFACE CONSISTENCY (real estimate)', require('./rounding.test').BODY],
+  ['ESTIMATE → ACTIVE PROJECT (contract value)', require('./activate.test').BODY],
 ];
 
 (async () => {
