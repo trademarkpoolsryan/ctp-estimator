@@ -58,4 +58,7 @@ proposal = budget all adding to the same bottom line (`_groupDispPrice`,
 a *display* mode — costs/markups/targets are untouched, so toggling OFF restores
 exact prices. Default OFF for new estimates; saved estimates restore their own
 stored `roundToHundred`. Toggle fns: `toggleRoundMode`, `syncRoundButtons`.
-Cross-surface consistency is locked down by `tests/rounding.test.js`.
+**Field Mode auto-Rounds**: `toggleClientMode` forces Round ON when you enter Field
+Mode (remembers the prior state in `_roundBeforeField`, restores on exit), so
+client-facing prices are clean automatically. Cross-surface consistency + the
+Field-Mode trigger are locked down by `tests/rounding.test.js`.

@@ -102,6 +102,26 @@ const BODY = `
     ok(window._roundToHundred === false, 'mode OFF after second click');
     close(estDispGrand(estLines), estTotals(estLines).totalPrice, 'exact again when off', 0.01);
   });
+
+  // ===== Auto-Round when Field Mode turns on =====
+  T('RND13 entering Field Mode auto-enables Round; exiting restores prior (off)', () => {
+    window._roundToHundred = false; window._clientMode = false; delete window._roundBeforeField;
+    toggleClientMode();                         // enter Field Mode
+    ok(window._clientMode === true, 'Field Mode on');
+    ok(window._roundToHundred === true, 'Round auto-enabled in Field Mode');
+    close(estDispGrand(estLines) % 100, 0, 'client-facing total is clean', 0.001);
+    toggleClientMode();                         // exit Field Mode
+    ok(window._clientMode === false, 'Field Mode off');
+    ok(window._roundToHundred === false, 'Round restored to prior off-state');
+  });
+  T('RND14 Field Mode preserves a manually-ON Round when you exit', () => {
+    window._roundToHundred = true; window._clientMode = false; delete window._roundBeforeField;
+    toggleClientMode();                         // enter (Round already on)
+    ok(window._roundToHundred === true, 'still on inside Field Mode');
+    toggleClientMode();                         // exit -> restore to ON
+    ok(window._roundToHundred === true, 'manual ON preserved after exit');
+    window._roundToHundred = false;             // cleanup
+  });
 `;
 
 if (require.main === module) runSuite('ROUNDING — CROSS-SURFACE CONSISTENCY (real estimate)', BODY).then(code => process.exit(code));
