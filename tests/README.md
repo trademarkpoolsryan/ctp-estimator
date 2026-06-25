@@ -33,6 +33,7 @@ is auto-detected; no `playwright install` needed.
 | `rounding.test.js`    | Round mode: sheet = proposal = budget = sum-of-rounded-leaves; multiple-of-increment; DOM totals bar; GP honesty; the Round toggle button |
 | `activate.test.js`    | Estimate → Active Project: contract value uses the estimate's rounded displayed grand (`estSnapDisp`), not a raw cost×markup sum |
 | `budget.test.js`      | Job Portal budget (`budgetSheet`) shows the estimate's signed rounded pricing (apportioned per its stored Round state), not the raw total |
+| `editmeta.test.js`    | Edit Job # / name from the estimate sheet (`editSavedEstimate`/`confirmEditEstimate`): canonical relabel, blank/duplicate Job # rejected |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

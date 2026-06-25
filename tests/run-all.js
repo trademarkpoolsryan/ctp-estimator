@@ -10,6 +10,7 @@ const SUITES = [
   ['ROUNDING — CROSS-SURFACE CONSISTENCY (real estimate)', require('./rounding.test').BODY],
   ['ESTIMATE → ACTIVE PROJECT (contract value)', require('./activate.test').BODY],
   ['PROJECT BUDGET (signed rounded pricing)', require('./budget.test').BODY],
+  ['EDIT JOB # / NAME (from the estimate sheet)', require('./editmeta.test').BODY],
 ];
 
 (async () => {
