@@ -38,6 +38,8 @@ is auto-detected; no `playwright install` needed.
 | `activate.test.js`    | Estimate → Active Project: contract value uses the estimate's rounded displayed grand (`estSnapDisp`), not a raw cost×markup sum |
 | `budget.test.js`      | Job Portal budget (`budgetSheet`) shows the estimate's signed rounded pricing (apportioned per its stored Round state), not the raw total |
 | `editmeta.test.js`    | Edit Job # / name from the estimate sheet (`editSavedEstimate`/`confirmEditEstimate`): canonical relabel, blank/duplicate Job # rejected |
+| `history.test.js`     | Version history scoped to the open estimate (`_estSnapBelongsToCurrent`), not the global snapshot ring |
+| `clientportal.test.js`| Client portal data-priming + send-message: `Backend.setLocalRaw`, `jpReloadFromLocal`, compose UI render, offline-error + success append |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export
