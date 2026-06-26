@@ -15,6 +15,7 @@ const SUITES = [
   ['CLIENT PORTAL (priming + send-message)', require('./clientportal.test').BODY],
   ['POOL SAFETY ACT §115922 (checklist → proposal)', require('./safety.test').BODY],
   ['NAV HISTORY (Back button stays in-app)', require('./navhistory.test').BODY],
+  ['HOME LAUNCHER (Settings + Support tiles)', require('./homescreen.test').BODY],
 ];
 
 (async () => {

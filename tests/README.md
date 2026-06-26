@@ -42,6 +42,7 @@ is auto-detected; no `playwright install` needed.
 | `clientportal.test.js`| Client portal data-priming + send-message: `Backend.setLocalRaw`, `jpReloadFromLocal`, compose UI render, offline-error + success append |
 | `safety.test.js`      | Pool Safety Act §115922: checklist → generated proposal section + live preview, conditional notes (fence/gate/alarm once/pool-alarm), min-2 warning, persistence |
 | `navhistory.test.js`  | Browser Back/Forward stays in-app and the last Back lands on Home: each `nav()` records a history entry atop a seeded Home entry; `back()`→pages→Home, Forward re-enters, logo `showWelcome()` records Home, null-state popstate is a no-op |
+| `homescreen.test.js`  | Home launcher includes Settings + Support tiles (`buildWelcomeTiles`), with descriptions, and they navigate |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export
