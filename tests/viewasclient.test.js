@@ -39,6 +39,29 @@ const BODY = `
     ok(!bannerShown(), 'preview bar hidden');
     ok(!document.body.classList.contains('ctp-client-preview'), 'preview class removed');
   });
+
+  // ── entry point #2: from the Client Portal page itself ──
+  T('VAC4 the Client Portal detail shows a "View as client" admin button (not in preview)', () => {
+    document.body.classList.remove('ctp-client-preview');
+    nav('clientportal'); CP.open('777');
+    const pane = document.getElementById('cp-pane');
+    ok(/CP\\.viewAsClient\\(\\)/.test(pane.innerHTML), 'admin View-as-client button present in the portal detail');
+  });
+  T('VAC5 CP.viewAsClient enters preview (chrome hidden) and removes the admin button', () => {
+    CP.viewAsClient();
+    ok(role() === 'client', 'role client');
+    ok(sidebarHidden(), 'admin sidebar hidden');
+    ok(bannerShown(), 'preview bar shown');
+    ok(!/CP\\.viewAsClient\\(\\)/.test(document.getElementById('cp-pane').innerHTML), 'admin button hidden during preview');
+  });
+  T('VAC6 Exit from a portal-initiated preview returns to the Client Portal (admin)', () => {
+    window.ctpExitClientPreview();
+    ok(role() === 'admin', 'role admin');
+    ok(!sidebarHidden(), 'sidebar restored');
+    const cp = document.getElementById('page-clientportal');
+    ok(cp && cp.classList.contains('active'), 'back on the client portal page');
+    ok(document.getElementById('cp-msg-text'), 'job re-rendered in admin view');
+  });
 `;
 
 if (require.main === module) runSuite('VIEW AS CLIENT (portal preview)', BODY).then(code => process.exit(code));
