@@ -42,7 +42,7 @@ const BODY = `
     ok(sidebarHidden(), 'admin sidebar hidden');
     const t = cpTgl();
     ok(t && t.checked, 'toggle is ON (checked → teal track)');
-    ok(!/All client portals/.test(document.getElementById('cp-pane').innerHTML), 'admin back hidden in preview');
+    ok(/All client portals/.test(document.getElementById('cp-pane').innerHTML), 'header row stays the same (back link still present in preview)');
     ok(document.getElementById('cp-msg-text'), 'job detail rendered (not the picker)');
   });
 
