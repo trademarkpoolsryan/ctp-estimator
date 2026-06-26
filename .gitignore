@@ -1,0 +1,6 @@
+# Generated one-off artifacts (roadmap exports, etc.)
+CTP_Estimator_Roadmap.pdf
+*.pdf
+
+# Test deps
+tests/node_modules/
