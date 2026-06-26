@@ -168,24 +168,46 @@ module). Ordered by impact ÷ effort.
 
 ### Tier 3 — Money (close the loop)
 
-8. **Online deposit / draw payment in-context** — "Approve & Pay Deposit" as one signed
-   action (Jobber). The draw schedule already renders; make each draw payable.
-9. **Financing, monthly-payment-first** (Hearth framing, Wisetack/Sunbit-style
-   mechanics) presented on the proposal/draw — "$X/month," soft-pull pre-qual, "won't
-   affect your credit score." High impact on big-ticket pool sales.
+**Decided approach: third-party-hosted, rail-matched to draw size.** The client never
+links a bank account to CTP — they enter details on the processor's own hosted page
+(Stripe or similar), and the portal just gets a "paid" webhook. No PCI burden, no stored
+cards. Standard Stripe has **no monthly fee** — pay-as-you-go per transaction only.
+
+8. **Small payments** (deposit, few-$k draws): card with a **+3% surcharge passed to the
+   client** (legal in CA, disclosed) or **ACH (0.8%, capped at $5)** — convenience wins,
+   cost to CTP ≈ $0–5.
+9. **Large draws ($50–100k):** card is off the table (fees + chargeback risk); the portal
+   shows the draw with **wire instructions** and a "mark as paid" status (flat ~$15–30,
+   irreversible, fast) — or hosted ACH with raised limits. Big money stays on **wire/check
+   tracked in the portal**, not run through a card processor.
+10. **Financing, monthly-payment-first** (Hearth framing, Wisetack/Sunbit-style
+    mechanics) presented on the proposal/draw — "$X/month," soft-pull pre-qual, "won't
+    affect your credit score." A *sales* lever (lender pays CTP in full), separate from
+    payment acceptance. Confirm a partner before building the UI.
 
 ### Tier 4 — Polish & differentiate
 
-10. **Phase-completion photo galleries** auto-pushed when a crew marks a stage done
+11. **Phase-completion photo galleries** auto-pushed when a crew marks a stage done
     (Skimmer / PoolBuilderHQ) — makes invisible work visible; builds on the existing
     updates feed.
-11. **Host the approved 3D render / 360 walkthrough** in the portal (the thing Structure
-    Studios *doesn't* do) — a genuine pool-specific differentiator.
-12. **Passwordless magic-link entry** (Jobber / Housecall Pro) — the most-loved access
-    pattern. Bigger auth change; worth it but not first.
-13. **Builder-controlled visibility** — let the team toggle which sections each client
-    sees per job (JobTread External Budget Views / ServiceTitan toggle). CTP already has
-    the "Client view" preview; extend it to per-section visibility flags.
+12. **Passwordless magic-link entry** ✅ *(owner: yes)* (Jobber / Housecall Pro) — the
+    most-loved access pattern; emailed/SMS link, no password to forget. Bigger auth
+    change; worth it but not first.
+13. **Builder-controlled per-section visibility** ✅ *(owner: yes)* — the team toggles
+    which sections each client sees per job (JobTread External Budget Views / ServiceTitan
+    toggle). CTP already has the "Client view" preview; extend it to per-section flags.
+
+*Dropped: hosting the 3D render / 360 walkthrough — depends on Structure Studios
+export/hosting CTP doesn't control. Parked.*
+
+### Scope boundary — CTP vs. QuickBooks (decided)
+CTP is the **job / project-accounting** layer — estimates → jobs → invoices → job costing
+(budget-vs-actual P&L, coded vendor bills, AP aging, 1099 totals), and it already exports
+to QuickBooks. It is **not** a general ledger: no double-entry, no whole-business income
+statement (overhead/operating expenses), no balance sheet (assets/liabilities/equity), no
+bank reconciliation. QuickBooks (or Wave/Xero) stays the system of record for GL,
+financial statements, and tax. The portal/payment work feeds that boundary, it doesn't
+try to replace it.
 
 ### The overarching principle — win on polish
 Every competitor's #1 complaint is **clunky, click-heavy, sluggish UX, especially on
