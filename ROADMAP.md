@@ -17,6 +17,7 @@ California Trademark Pools · ctp-estimator.vercel.app · single-file build, dep
 - **Client portal** — clients land straight on their job (data-priming on login) and can message the team (send-message).
 - **Pool Safety Act §115922** — drowning-prevention checklist on the estimate; prints on the proposal with the right conditional notes.
 - **Home screen** — Settings + Support tiles added to the launcher.
+- **View as client** — preview the client portal exactly as the client sees it (from the Job Portal).
 - **CI** — the full browser test suite runs on every PR into `main`.
 
 ## ✅ Shipped — earlier
@@ -27,7 +28,6 @@ Money math reconciled · Permit-selection fix · Proposal content & saved edits 
 
 ## NOW — on the bench
 
-- **View as client** — see the portal exactly how the client sees it.
 - **Client-portal research** — study the best competitor portals; take the best of each (informs the portal redesign).
 
 ## NEXT — queued
