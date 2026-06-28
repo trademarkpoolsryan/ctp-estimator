@@ -17,12 +17,12 @@ const BODY = `
   function open(){ nav('clientportal'); CP.open('781'); }
   function selLabels(){ return Array.prototype.map.call(pane().querySelectorAll('#cp-sec-selections .cp-row > div > div:first-child'), e => e.textContent.replace(/added$/,'').trim()); }
 
-  T('PRT0 a tab bar renders with the 5 sections, Build active, one panel shown', () => {
+  T('PRT0 a tab bar renders with the 6 sections, Build active, one panel shown', () => {
     open();
     const tabs = pane().querySelectorAll('.cp-tab');
-    ok(tabs.length === 5, 'five tabs');
+    ok(tabs.length === 6, 'six tabs');
     const labels = Array.prototype.map.call(tabs, t => t.textContent.replace(/[0-9]+$/,'').trim());
-    ['Build','Selections','Money','Docs','Messages'].forEach(l => ok(labels.indexOf(l) >= 0, 'tab '+l));
+    ['Build','Schedule','Selections','Payments','Docs','Messages'].forEach(l => ok(labels.indexOf(l) >= 0, 'tab '+l));
     const on = pane().querySelectorAll('.cp-panel.on');
     ok(on.length === 1, 'exactly one panel visible');
     ok(on[0].getAttribute('data-panel') === 'build', 'Build is the default panel');
@@ -39,10 +39,10 @@ const BODY = `
 
   T('PRT2 CP.tab switches the visible panel without re-rendering away the others', () => {
     open();
-    CP.tab('money');
+    CP.tab('payments');
     const on = pane().querySelectorAll('.cp-panel.on');
-    ok(on.length === 1 && on[0].getAttribute('data-panel') === 'money', 'money panel now visible');
-    ok(pane().querySelector('.cp-tab.on').getAttribute('data-tab') === 'money', 'money tab active');
+    ok(on.length === 1 && on[0].getAttribute('data-panel') === 'payments', 'payments panel now visible');
+    ok(pane().querySelector('.cp-tab.on').getAttribute('data-tab') === 'payments', 'payments tab active');
     ok(document.getElementById('cp-sec-invest'), 'investment card still in the DOM');
   });
 
@@ -104,12 +104,56 @@ const BODY = `
     const store = { '782': { updates: [], selections: big, inspections: [] } };
     if (window.Backend.setLocalRaw) window.Backend.setLocalRaw('ctp_portal_v1', JSON.stringify(store));
     else localStorage.setItem('ctp_portal_v1', JSON.stringify(store));
-    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([{
-      id: 782, name: 'Legacy Client', num: 'EST-782', value: 80000, collected: 0, stage: 'Excavation', type: 'New Pool'
-    }]));
+    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([
+      { id: 781, name: 'Redesign Client', address: '5 Pool Ln', num: 'EST-781', value: 90000, collected: 0, stage: 'Plumbing & Steel', type: 'New Pool', date: '6/26/2026' },
+      { id: 782, name: 'Legacy Client', num: 'EST-782', value: 80000, collected: 0, stage: 'Excavation', type: 'New Pool' }
+    ]));
     window.jpReloadFromLocal();
     nav('clientportal'); CP.open('782');
     ok(selLabels().length === 3, 'collapsed from 91 to 3, got ' + selLabels().length);
+  });
+
+  T('PRT9 Build no longer shows Inspections or Warranty; it carries progress photos', () => {
+    open();
+    const build = pane().querySelector('.cp-panel[data-panel=build]').innerHTML;
+    ok(!/<h3>Inspections<\\/h3>/.test(build), 'no Inspections card on Build');
+    ok(!/<h3>Warranty<\\/h3>/.test(build), 'no Warranty card on Build');
+    ok(/Progress photos/.test(build), 'progress photos & updates present on Build');
+  });
+
+  T('PRT10 Schedule tab lists build phases wired from the job-portal schedule', () => {
+    open();
+    ok(typeof window.jpScheduleFor === 'function', 'jpScheduleFor getter exposed');
+    const rows = window.jpScheduleFor('781') || [];
+    ok(rows.length >= 10, 'getter returns the phase plan, got ' + rows.length);
+    const sched = pane().querySelector('.cp-panel[data-panel=schedule]');
+    ok(sched && /Build schedule/.test(sched.innerHTML), 'Build schedule card present');
+    ok(sched.querySelectorAll('.cp-row').length >= 5, 'lists multiple phases');
+    ok(/Inspection/.test(sched.innerHTML), 'inspections live in the schedule now');
+    ok(sched.querySelector('.cp-sst'), 'each phase shows a status pill');
+  });
+
+  T('PRT11 the Money tab is now Payments with a "Payment schedule" card', () => {
+    open();
+    const lbls = Array.prototype.map.call(pane().querySelectorAll('.cp-tab'), t => t.textContent.replace(/[0-9]+$/,'').trim());
+    ok(lbls.indexOf('Payments') >= 0 && lbls.indexOf('Money') < 0, 'tab renamed Money -> Payments');
+    ok(/Payment schedule/.test(pane().querySelector('.cp-panel[data-panel=payments]').innerHTML), 'card titled Payment schedule');
+  });
+
+  T('PRT12 a saved proposal for this job shows in Docs with a View action -> the proposal viewer', () => {
+    window.Backend.setLocalRaw('ctp_proposals', JSON.stringify([
+      { id: 5551, estimateNum: 'EST-781', proposalNum: 2, baseTotal: 90000, optionalTotal: 12000, date: '2026-06-20T10:00:00.000Z' }
+    ]));
+    open();
+    const docs = pane().querySelector('.cp-panel[data-panel=docs]');
+    ok(/Proposal/.test(docs.innerHTML), 'proposal row present');
+    ok(/full contract/.test(docs.innerHTML), 'labeled as the full contract');
+    ok(/102,000/.test(docs.innerHTML), 'shows the combined contract total');
+    const link = Array.prototype.slice.call(docs.querySelectorAll('.cp-chip')).filter(a => /viewProposal/.test(a.getAttribute('onclick')||''))[0];
+    ok(link, 'View action wired to CP.viewProposal');
+    let opened = null; window.viewSavedProposal = function(rec){ opened = rec; };
+    CP.viewProposal(5551);
+    ok(opened && String(opened.id) === '5551', 'viewProposal hands the record to the offline viewer');
   });
 `;
 
