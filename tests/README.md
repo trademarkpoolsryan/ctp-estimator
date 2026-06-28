@@ -45,6 +45,7 @@ is auto-detected; no `playwright install` needed.
 | `homescreen.test.js`  | Home launcher includes Settings + Support tiles (`buildWelcomeTiles`), with descriptions, and they navigate |
 | `viewasclient.test.js`| "Client view" preview: one shared `.set-switch` pill toggle (Job Portal + Client Portal); ON hides the admin chrome and lands on the job, OFF restores admin |
 | `clientdocs.test.js`  | Client document uploads: portal Documents card renders the upload control + lists seeded docs with a View link; `CP.uploadDoc` posts `{name,dataUrl}` to the live `upload-document` function (project derived from auth), mirrors locally, renders the new row; oversized-file guard |
+| `attention.test.js`   | "Needs your attention" action strip: renders first; pending selections + due draws surface as actionable rows that jump (`CP.focusSec`) to the selections/investment cards; calm all-caught-up state when nothing is pending |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

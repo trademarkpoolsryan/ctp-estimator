@@ -18,6 +18,7 @@ const SUITES = [
   ['HOME LAUNCHER (Settings + Support tiles)', require('./homescreen.test').BODY],
   ['CLIENT VIEW (one shared pill toggle)', require('./viewasclient.test').BODY],
   ['CLIENT DOCUMENT UPLOADS (portal Documents card)', require('./clientdocs.test').BODY],
+  ['ATTENTION STRIP (portal action items)', require('./attention.test').BODY],
 ];
 
 (async () => {
