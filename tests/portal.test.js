@@ -121,16 +121,18 @@ const BODY = `
     ok(/Progress photos/.test(build), 'progress photos & updates present on Build');
   });
 
-  T('PRT10 Schedule tab lists build phases wired from the job-portal schedule', () => {
+  T('PRT10 Schedule tab embeds the real Job-Portal calendar, read-only', () => {
     open();
-    ok(typeof window.jpScheduleFor === 'function', 'jpScheduleFor getter exposed');
-    const rows = window.jpScheduleFor('781') || [];
-    ok(rows.length >= 10, 'getter returns the phase plan, got ' + rows.length);
+    ok(typeof window.jpScheduleClientHTML === 'function', 'jpScheduleClientHTML exposed');
     const sched = pane().querySelector('.cp-panel[data-panel=schedule]');
-    ok(sched && /Build schedule/.test(sched.innerHTML), 'Build schedule card present');
-    ok(sched.querySelectorAll('.cp-row').length >= 5, 'lists multiple phases');
-    ok(/Inspection/.test(sched.innerHTML), 'inspections live in the schedule now');
-    ok(sched.querySelector('.cp-sst'), 'each phase shows a status pill');
+    ok(sched, 'schedule panel present');
+    const embed = sched.querySelector('#jp-schedule.cp-sched-embed');
+    ok(embed, 'embeds the #jp-schedule calendar');
+    ok(embed.classList.contains('cli'), 'rendered in the built-in read-only client mode');
+    ok(embed.querySelector('.week'), 'has the month-grid calendar weeks');
+    ok(embed.querySelectorAll('.prow').length >= 5, 'lists the build phases');
+    ok(/Inspection/.test(embed.innerHTML), 'inspections appear in the schedule');
+    ok(!/onclick=/.test(embed.innerHTML), 'inline handlers stripped (static / read-only)');
   });
 
   T('PRT11 the Money tab is now Payments with a "Payment schedule" card', () => {
