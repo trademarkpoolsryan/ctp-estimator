@@ -46,6 +46,7 @@ is auto-detected; no `playwright install` needed.
 | `viewasclient.test.js`| "Client view" preview: one shared `.set-switch` pill toggle (Job Portal + Client Portal); ON hides the admin chrome and lands on the job, OFF restores admin |
 | `clientdocs.test.js`  | Client document uploads: portal Documents card renders the upload control + lists seeded docs with a View link; `CP.uploadDoc` posts `{name,dataUrl}` to the live `upload-document` function (project derived from auth), mirrors locally, renders the new row; oversized-file guard |
 | `attention.test.js`   | "Needs your attention" action strip: renders first; pending selections + due draws surface as actionable rows that jump (`CP.focusSec`) to the selections/investment cards; calm all-caught-up state when nothing is pending |
+| `portal.test.js`      | Portal overhaul: tabbed no-scroll layout (Build/Selections/Money/Documents/Messages, one panel visible, `CP.tab`), horizontal phase stepper, curated finishes (3 base + team-added optional/custom, add/remove, admin-only control), and migration of a legacy 91-row selections blob down to the 3 base finishes |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

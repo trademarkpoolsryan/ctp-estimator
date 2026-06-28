@@ -1,0 +1,117 @@
+// Client-portal overhaul: tabbed no-scroll layout + curated finishes model. Replaces the old
+// auto-from-estimate selections list (which ballooned to dozens of duplicate rows) with three base
+// finishes (Tile, Concrete Finish, Plaster Finish) plus team-added optional/custom finishes. Drives
+// the REAL portal DOM: tab switching, the curated list, add/remove finish, and the migration that
+// collapses a legacy 91-row list down to the 3 base finishes.
+const { runSuite } = require('./harness');
+
+const BODY = `
+  window.saveState = function(){}; window.scheduleAutoSave = function(){};
+
+  window.Backend.setLocalRaw('ctp_projects', JSON.stringify([{
+    id: 781, name: 'Redesign Client', address: '5 Pool Ln', num: 'EST-781',
+    value: 90000, collected: 0, stage: 'Plumbing & Steel', type: 'New Pool', date: '6/26/2026'
+  }]));
+  window.jpReloadFromLocal();
+  function pane(){ return document.getElementById('cp-pane'); }
+  function open(){ nav('clientportal'); CP.open('781'); }
+  function selLabels(){ return Array.prototype.map.call(pane().querySelectorAll('#cp-sec-selections .cp-row > div > div:first-child'), e => e.textContent.replace(/added$/,'').trim()); }
+
+  T('PRT0 a tab bar renders with the 5 sections, Build active, one panel shown', () => {
+    open();
+    const tabs = pane().querySelectorAll('.cp-tab');
+    ok(tabs.length === 5, 'five tabs');
+    const labels = Array.prototype.map.call(tabs, t => t.textContent.replace(/[0-9]+$/,'').trim());
+    ['Build','Selections','Money','Docs','Messages'].forEach(l => ok(labels.indexOf(l) >= 0, 'tab '+l));
+    const on = pane().querySelectorAll('.cp-panel.on');
+    ok(on.length === 1, 'exactly one panel visible');
+    ok(on[0].getAttribute('data-panel') === 'build', 'Build is the default panel');
+    ok(pane().querySelector('.cp-tab.on').getAttribute('data-tab') === 'build', 'Build tab marked active');
+  });
+
+  T('PRT1 the build panel uses a horizontal stepper (not 7 stacked rows)', () => {
+    open();
+    const step = pane().querySelector('.cp-panel[data-panel=build] .cp-stepper');
+    ok(step, 'stepper present');
+    ok(step.querySelectorAll('.cp-sd').length === 7, 'all 7 phases as compact stepper dots');
+    ok(step.querySelector('.cp-sd.cur'), 'current phase highlighted');
+  });
+
+  T('PRT2 CP.tab switches the visible panel without re-rendering away the others', () => {
+    open();
+    CP.tab('money');
+    const on = pane().querySelectorAll('.cp-panel.on');
+    ok(on.length === 1 && on[0].getAttribute('data-panel') === 'money', 'money panel now visible');
+    ok(pane().querySelector('.cp-tab.on').getAttribute('data-tab') === 'money', 'money tab active');
+    ok(document.getElementById('cp-sec-invest'), 'investment card still in the DOM');
+  });
+
+  T('PRT3 Selections shows exactly the 3 base finishes — no 91-row blowup', () => {
+    open();
+    const labels = selLabels();
+    ok(labels.length === 3, 'three rows, got ' + labels.length);
+    ['Tile','Concrete Finish','Plaster Finish'].forEach(l => ok(labels.indexOf(l) >= 0, 'has ' + l));
+  });
+
+  T('PRT4 admin can add an optional finish; it shows an "added" badge and leaves the dropdown', () => {
+    open();
+    CP.tab('selections');
+    ok(document.getElementById('cp-fin-sel'), 'admin add control present');
+    CP.addFinish('Spa', false);
+    const labels = selLabels();
+    ok(labels.indexOf('Spa') >= 0, 'Spa added');
+    ok(/added/.test(pane().querySelector('#cp-sec-selections').innerHTML), 'shows the added badge');
+    // re-render keeps us on the selections tab and Spa drops out of the dropdown options
+    const opts = Array.prototype.map.call(document.querySelectorAll('#cp-fin-sel option'), o => o.value);
+    ok(opts.indexOf('Spa') < 0, 'Spa no longer offered in the dropdown');
+  });
+
+  T('PRT5 a custom finish can be added by name', () => {
+    open();
+    CP.addFinish('Sun Shelf Tile', true);
+    ok(selLabels().indexOf('Sun Shelf Tile') >= 0, 'custom finish present');
+  });
+
+  T('PRT6 base finishes have no remove button; added finishes do, and removeFinish drops them', () => {
+    open();
+    CP.addFinish('Raised Bond Beam', false);
+    let rows = pane().querySelectorAll('#cp-sec-selections .cp-row');
+    // base rows (first 3) have no remove control
+    ok(!rows[0].querySelector('.cp-fin-rm'), 'base finish not removable');
+    const added = Array.prototype.slice.call(rows).filter(r => r.querySelector('.cp-fin-rm'));
+    ok(added.length >= 1, 'added finish is removable');
+    const before = selLabels().length;
+    // remove the Raised Bond Beam we just added (find its index in d.selections via its onclick)
+    const rm = added[added.length-1].querySelector('.cp-fin-rm');
+    const i = Number(rm.getAttribute('onclick').match(/removeFinish\\((\\d+)\\)/)[1]);
+    CP.removeFinish(i);
+    ok(selLabels().length === before - 1, 'one finish removed');
+  });
+
+  T('PRT7 the add control is hidden in client preview (team-only)', () => {
+    open();
+    document.body.classList.add('ctp-client-preview');
+    CP.open('781'); // re-render in "preview" state
+    ok(!document.getElementById('cp-fin-sel'), 'no add control for the client');
+    ok(pane().querySelector('#cp-sec-selections'), 'but the selections list still renders');
+    document.body.classList.remove('ctp-client-preview');
+  });
+
+  T('PRT8 a legacy 91-row selections blob is migrated down to the 3 base finishes', () => {
+    // Seed a pre-existing portal record with the old auto-generated mess (no selVer).
+    const big = [];
+    for (let i = 0; i < 91; i++) big.push({ item: 'Interior finish', status: 'pending' });
+    const store = { '782': { updates: [], selections: big, inspections: [] } };
+    if (window.Backend.setLocalRaw) window.Backend.setLocalRaw('ctp_portal_v1', JSON.stringify(store));
+    else localStorage.setItem('ctp_portal_v1', JSON.stringify(store));
+    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([{
+      id: 782, name: 'Legacy Client', num: 'EST-782', value: 80000, collected: 0, stage: 'Excavation', type: 'New Pool'
+    }]));
+    window.jpReloadFromLocal();
+    nav('clientportal'); CP.open('782');
+    ok(selLabels().length === 3, 'collapsed from 91 to 3, got ' + selLabels().length);
+  });
+`;
+
+if (require.main === module) runSuite('CLIENT PORTAL OVERHAUL (tabs + curated finishes)', BODY).then(code => process.exit(code));
+module.exports = { BODY };

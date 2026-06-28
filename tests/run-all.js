@@ -19,6 +19,7 @@ const SUITES = [
   ['CLIENT VIEW (one shared pill toggle)', require('./viewasclient.test').BODY],
   ['CLIENT DOCUMENT UPLOADS (portal Documents card)', require('./clientdocs.test').BODY],
   ['ATTENTION STRIP (portal action items)', require('./attention.test').BODY],
+  ['CLIENT PORTAL OVERHAUL (tabs + curated finishes)', require('./portal.test').BODY],
 ];
 
 (async () => {
