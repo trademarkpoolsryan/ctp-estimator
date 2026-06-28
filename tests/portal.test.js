@@ -158,16 +158,16 @@ const BODY = `
     ok(opened && String(opened.id) === '5551', 'viewProposal hands the record to the offline viewer');
   });
 
-  T('PRT13 the Payment schedule mirrors the typical contract draw schedule', () => {
+  T('PRT13 the Payment schedule mirrors CTP\\'s contract draw schedule (no deposit, 15/25/20/25/15)', () => {
     ok(typeof window.ctpDrawSchedule === 'function', 'contract drawSchedule exposed for reuse');
-    // contract default on $90k: 10/25/30/25/10
-    const sc = window.ctpDrawSchedule(90000);
+    const sc = window.ctpDrawSchedule(90000);   // 15/25/20/25/15 on $90k
     ok(sc.length === 5, 'five draws');
-    ok(sc[0][1] === 9000 && sc[1][1] === 22500 && sc[2][1] === 27000 && sc[3][1] === 22500 && sc[4][1] === 9000, 'amounts match 10/25/30/25/10');
+    ok(sc[0][1] === 13500 && sc[1][1] === 22500 && sc[2][1] === 18000 && sc[3][1] === 22500 && sc[4][1] === 13500, 'amounts match 15/25/20/25/15');
+    ok(!/deposit/i.test(sc.map(r => r[0]).join(' ')), 'no deposit draw');
     open();
     const h = pane().querySelector('.cp-panel[data-panel=payments]').innerHTML;
-    ['Deposit (on signing)','Excavation','Gunite','Tile, deck','Final / startup'].forEach(l => ok(h.indexOf(l) >= 0, 'draw "' + l + '" present'));
-    ['9,000','22,500','27,000'].forEach(a => ok(h.indexOf(a) >= 0, 'amount ' + a + ' shown'));
+    ['Excavation','Rough plumbing','Gunite','Tile, concrete','Equipment set'].forEach(l => ok(h.indexOf(l) >= 0, 'draw "' + l + '" present'));
+    ['13,500','22,500','18,000'].forEach(a => ok(h.indexOf(a) >= 0, 'amount ' + a + ' shown'));
   });
 `;
 
