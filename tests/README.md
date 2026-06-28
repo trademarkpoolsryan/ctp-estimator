@@ -44,6 +44,7 @@ is auto-detected; no `playwright install` needed.
 | `navhistory.test.js`  | Browser Back/Forward stays in-app and the last Back lands on Home: each `nav()` records a history entry atop a seeded Home entry; `back()`→pages→Home, Forward re-enters, logo `showWelcome()` records Home, null-state popstate is a no-op |
 | `homescreen.test.js`  | Home launcher includes Settings + Support tiles (`buildWelcomeTiles`), with descriptions, and they navigate |
 | `viewasclient.test.js`| "Client view" preview: one shared `.set-switch` pill toggle (Job Portal + Client Portal); ON hides the admin chrome and lands on the job, OFF restores admin |
+| `clientdocs.test.js`  | Client document uploads: portal Documents card renders the upload control + lists seeded docs with a View link; `CP.uploadDoc` posts `{name,dataUrl}` to the live `upload-document` function (project derived from auth), mirrors locally, renders the new row; oversized-file guard |
 
 ## Not covered offline (need real network)
 Supabase auth & multi-device sync, cloud persistence across reload, and PDF export

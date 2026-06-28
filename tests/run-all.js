@@ -17,6 +17,7 @@ const SUITES = [
   ['NAV HISTORY (Back button stays in-app)', require('./navhistory.test').BODY],
   ['HOME LAUNCHER (Settings + Support tiles)', require('./homescreen.test').BODY],
   ['CLIENT VIEW (one shared pill toggle)', require('./viewasclient.test').BODY],
+  ['CLIENT DOCUMENT UPLOADS (portal Documents card)', require('./clientdocs.test').BODY],
 ];
 
 (async () => {
