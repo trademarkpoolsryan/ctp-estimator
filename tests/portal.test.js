@@ -157,6 +157,18 @@ const BODY = `
     CP.viewProposal(5551);
     ok(opened && String(opened.id) === '5551', 'viewProposal hands the record to the offline viewer');
   });
+
+  T('PRT13 the Payment schedule mirrors the typical contract draw schedule', () => {
+    ok(typeof window.ctpDrawSchedule === 'function', 'contract drawSchedule exposed for reuse');
+    // contract default on $90k: 10/25/30/25/10
+    const sc = window.ctpDrawSchedule(90000);
+    ok(sc.length === 5, 'five draws');
+    ok(sc[0][1] === 9000 && sc[1][1] === 22500 && sc[2][1] === 27000 && sc[3][1] === 22500 && sc[4][1] === 9000, 'amounts match 10/25/30/25/10');
+    open();
+    const h = pane().querySelector('.cp-panel[data-panel=payments]').innerHTML;
+    ['Deposit (on signing)','Excavation','Gunite','Tile, deck','Final / startup'].forEach(l => ok(h.indexOf(l) >= 0, 'draw "' + l + '" present'));
+    ['9,000','22,500','27,000'].forEach(a => ok(h.indexOf(a) >= 0, 'amount ' + a + ' shown'));
+  });
 `;
 
 if (require.main === module) runSuite('CLIENT PORTAL OVERHAUL (tabs + curated finishes)', BODY).then(code => process.exit(code));
