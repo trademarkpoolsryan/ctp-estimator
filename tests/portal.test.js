@@ -224,6 +224,50 @@ const BODY = `
     ok(heads.indexOf('Excavation') < heads.indexOf('Gunite'), 'grouped in schedule build order');
     localStorage.removeItem('ctp_docs_781');
   });
+
+  T('PRT18 team can type the actual selection; chip ramps Choose → Chosen(yellow) → Selected(green)', () => {
+    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([{ id: 781, name: 'Redesign Client', address: '5 Pool Ln', num: 'EST-781', value: 90000, collected: 0, stage: 'Plumbing & Steel', type: 'New Pool', date: '6/26/2026' }]));
+    window.Backend.setLocalRaw('ctp_portal_v1', JSON.stringify({}));  // clean slate: all base finishes pending
+    window.jpReloadFromLocal();
+    open(); CP.tab('selections');
+    const edits = pane().querySelectorAll('#cp-sec-selections .cp-sel-edit');
+    ok(edits.length === 3, 'every finish has an editable field, got ' + edits.length);
+    let chip = pane().querySelectorAll('#cp-sec-selections .cp-chip')[0];
+    const i0 = Number(chip.getAttribute('onclick').match(/toggleSel\\((\\d+)\\)/)[1]);
+    ok(/Choose/i.test(chip.textContent) && !/cp-sel-(yellow|green)/.test(chip.className), 'admin pending = neutral "Choose"');
+    // type the real material -> saved AND nudged to yellow "Chosen"
+    CP.setChosen(i0, 'Blue Series Tile');
+    let row0 = pane().querySelectorAll('#cp-sec-selections .cp-sel-item')[0];
+    ok(row0.querySelector('.cp-sel-edit').value === 'Blue Series Tile', 'typed selection persisted + shown');
+    chip = row0.querySelector('.cp-chip');
+    ok(/Chosen/i.test(chip.textContent) && /cp-sel-yellow/.test(chip.className), 'typing nudges to yellow "Chosen", got ' + chip.textContent + ' / ' + chip.className);
+    // advance -> green "Selected"
+    CP.toggleSel(i0);
+    chip = pane().querySelectorAll('#cp-sec-selections .cp-sel-item')[0].querySelector('.cp-chip');
+    ok(/Selected/i.test(chip.textContent) && /cp-sel-green/.test(chip.className), 'admin final = green "Selected", got ' + chip.textContent + ' / ' + chip.className);
+    // toggles back to yellow
+    CP.toggleSel(i0);
+    chip = pane().querySelectorAll('#cp-sec-selections .cp-sel-item')[0].querySelector('.cp-chip');
+    ok(/Chosen/i.test(chip.textContent) && /cp-sel-yellow/.test(chip.className), 'green toggles back to yellow');
+  });
+
+  T('PRT19 client side reads Select → Selected(yellow) → Confirmed(green), and can edit too', () => {
+    window.Backend.setLocalRaw('ctp_portal_v1', JSON.stringify({}));  // reset to pending
+    window.jpReloadFromLocal();
+    document.body.classList.add('ctp-client-preview');
+    CP.open('781'); CP.tab('selections');
+    ok(pane().querySelectorAll('#cp-sec-selections .cp-sel-edit').length === 3, 'client gets editable fields too');
+    let chip = pane().querySelectorAll('#cp-sec-selections .cp-chip')[0];
+    const i = Number(chip.getAttribute('onclick').match(/toggleSel\\((\\d+)\\)/)[1]);
+    ok(/Select/i.test(chip.textContent) && !/Selected/i.test(chip.textContent) && !/cp-sel-(yellow|green)/.test(chip.className), 'client pending = neutral "Select", got ' + chip.textContent);
+    CP.toggleSel(i);
+    chip = pane().querySelectorAll('#cp-sec-selections .cp-chip')[0];
+    ok(/Selected/i.test(chip.textContent) && /cp-sel-yellow/.test(chip.className), 'client yellow = "Selected", got ' + chip.textContent + ' / ' + chip.className);
+    CP.toggleSel(i);
+    chip = pane().querySelectorAll('#cp-sec-selections .cp-chip')[0];
+    ok(/Confirmed/i.test(chip.textContent) && /cp-sel-green/.test(chip.className), 'client green = "Confirmed", got ' + chip.textContent + ' / ' + chip.className);
+    document.body.classList.remove('ctp-client-preview');
+  });
 `;
 
 if (require.main === module) runSuite('CLIENT PORTAL OVERHAUL (tabs + curated finishes)', BODY).then(code => process.exit(code));
