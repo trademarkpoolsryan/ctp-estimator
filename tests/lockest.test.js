@@ -99,6 +99,50 @@ const BODY = `
     ok(_alerts.some(a => /already used/i.test(a)), 'warns about the clash, got: ' + _alerts.join(' | '));
   });
 
+  var YY = String(new Date().getFullYear()).slice(-2);
+
+  T('LCK8 _nextJobNumber follows year+sequence and restarts each year', () => {
+    projects.length = 0;
+    ok(_nextJobNumber() === YY + '01', 'first job of the year is ' + YY + '01, got ' + _nextJobNumber());
+    projects.push({ id:1, num: YY + '05', name:'A' });
+    projects.push({ id:2, num: YY + '02', name:'B' });
+    ok(_nextJobNumber() === YY + '06', 'increments past the highest of the year, got ' + _nextJobNumber());
+    projects.push({ id:3, num: 'EST-9', name:'C' });   // non-conforming numbers are ignored
+    ok(_nextJobNumber() === YY + '06', 'ignores numbers that do not match the convention');
+  });
+
+  T('LCK9 _promptActiveJobNumber returns the entry and rejects a clash', () => {
+    projects.length = 0; projects.push({ id:1, num: YY + '01', name:'X' });
+    window.prompt = function(){ return YY + '02'; };
+    ok(_promptActiveJobNumber() === YY + '02', 'returns the chosen number');
+    _alerts.length = 0; window.prompt = function(){ return YY + '01'; };   // already taken
+    ok(_promptActiveJobNumber() === null, 'rejects a number already in use by an active job');
+    ok(_alerts.some(a => /already an active job/i.test(a)), 'warns about the clash');
+    window.prompt = function(){ return null; };
+    ok(_promptActiveJobNumber() === null, 'cancelling returns null');
+  });
+
+  T('LCK10 making a saved estimate active prompts for a NEW number; the estimate keeps its own', () => {
+    seed();                                  // 5002 is unlinked; 5001 is the locked one
+    window.confirm = function(){ return true; };
+    window.prompt = function(){ return YY + '07'; };
+    const before = projects.length;
+    convertEstimateToProject(5002);
+    ok(projects.length === before + 1, 'a new active job is created');
+    const np = projects.find(p => String(p.linkedSavedEstimateId) === '5002');
+    ok(np && np.num === YY + '07', 'the active job uses the prompted number, got ' + (np && np.num));
+    const est = savedEstimates.find(s => s.id === 5002);
+    ok(est && est.num === 'EST-5002' && est.label === 'EST-5002 — Open Client', 'the saved estimate keeps its own number/name');
+  });
+
+  T('LCK11 cancelling the Job # prompt creates no active job', () => {
+    seed();
+    window.prompt = function(){ return null; };
+    const before = projects.length;
+    convertEstimateToProject(5002);
+    ok(projects.length === before, 'no active job created when the prompt is cancelled');
+  });
+
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
     seed();
     nav('projects');

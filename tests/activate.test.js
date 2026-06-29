@@ -14,7 +14,9 @@ const BODY = `
 
   function rawGrand(lines){ return Math.round((lines||[]).reduce((s,g)=>s+(g.items||[]).reduce((t,it)=>t+(it.qty||0)*(it.cost||0)*(1+(it.markup||0)/100),0),0)); }
 
-  // stub side-effects (nav / persistence / confirm)
+  // stub side-effects (nav / persistence / confirm). The active-job conversion now PROMPTS for the new
+  // job number, so feed a unique one each call (a clash would abort the conversion).
+  let _jobn = 0; window.prompt = () => 'JOB-' + (++_jobn);
   window.confirm = () => true; window.nav = () => {}; window.pmShow = () => {}; window.renderProjects = () => {};
   window.saveState = () => {}; window._safeSetItem = () => {};
 
