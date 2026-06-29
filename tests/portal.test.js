@@ -29,12 +29,15 @@ const BODY = `
     ok(pane().querySelector('.cp-tab.on').getAttribute('data-tab') === 'build', 'Build tab marked active');
   });
 
-  T('PRT1 the build panel uses a horizontal stepper (not 7 stacked rows)', () => {
+  T('PRT1 the build panel shows "Where we are" (current stage + up next), no Design&Permits stepper', () => {
     open();
-    const step = pane().querySelector('.cp-panel[data-panel=build] .cp-stepper');
-    ok(step, 'stepper present');
-    ok(step.querySelectorAll('.cp-sd').length === 7, 'all 7 phases as compact stepper dots');
-    ok(step.querySelector('.cp-sd.cur'), 'current phase highlighted');
+    const build = pane().querySelector('.cp-panel[data-panel=build]');
+    ok(!build.querySelector('.cp-stepper'), 'old phase stepper removed');
+    const now = build.querySelector('.cp-now');
+    ok(now && /Where we are/i.test(now.innerHTML), '"Where we are" card present');
+    ok(now.querySelector('.ph'), 'shows the current stage');
+    ok(/Up next/i.test(now.innerHTML), 'shows what is next');
+    ok(!/Design &amp; Permits/.test(build.innerHTML), 'no Design & Permits bubble');
   });
 
   T('PRT2 CP.tab switches the visible panel without re-rendering away the others', () => {
@@ -113,12 +116,12 @@ const BODY = `
     ok(selLabels().length === 3, 'collapsed from 91 to 3, got ' + selLabels().length);
   });
 
-  T('PRT9 Build no longer shows Inspections or Warranty; it carries progress photos', () => {
+  T('PRT9 Build has no Inspections/Warranty; it carries a Site photos gallery', () => {
     open();
     const build = pane().querySelector('.cp-panel[data-panel=build]').innerHTML;
     ok(!/<h3>Inspections<\\/h3>/.test(build), 'no Inspections card on Build');
     ok(!/<h3>Warranty<\\/h3>/.test(build), 'no Warranty card on Build');
-    ok(/Progress photos/.test(build), 'progress photos & updates present on Build');
+    ok(/<h3>Site photos<\\/h3>/.test(build), 'Site photos card present on Build');
   });
 
   T('PRT10 Schedule tab embeds the real Job-Portal calendar, read-only', () => {
@@ -168,6 +171,43 @@ const BODY = `
     const h = pane().querySelector('.cp-panel[data-panel=payments]').innerHTML;
     ['Excavation','Rough plumbing','Gunite','Tile, concrete','Equipment set'].forEach(l => ok(h.indexOf(l) >= 0, 'draw "' + l + '" present'));
     ['13,500','22,500','18,000'].forEach(a => ok(h.indexOf(a) >= 0, 'amount ' + a + ' shown'));
+  });
+
+  T('PRT14 Site photos are hard-wired to the job-portal site-photo docs (tagId t-photos)', () => {
+    localStorage.setItem('ctp_docs_781', JSON.stringify([
+      { id:'d1', name:'dig.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,AAAA', tagId:'t-photos', uploadedAt:'Jun 20, 2026' },
+      { id:'d2', name:'permit.pdf', type:'application/pdf', dataUrl:'data:application/pdf;base64,JVBE', tagId:'t-permits', uploadedAt:'Jun 19, 2026' }
+    ]));
+    open();
+    const build = pane().querySelector('.cp-panel[data-panel=build]');
+    const imgs = build.querySelectorAll('.cp-gallery .cp-ph img');
+    ok(imgs.length === 1, 'only the site photo shows in the gallery, got ' + imgs.length);
+    ok(imgs[0].getAttribute('src').indexOf('data:image/jpeg') === 0, 'renders the photo data URL');
+    ok(!/permit\\.pdf/.test(build.innerHTML), 'non-photo docs are not in the site-photo gallery');
+    localStorage.removeItem('ctp_docs_781');
+  });
+
+  T('PRT15 "Where we are" names the current stage and what is next', () => {
+    open();
+    const now = pane().querySelector('.cp-panel[data-panel=build] .cp-now').innerHTML;
+    // project 781 is at "Plumbing & Steel"; with no scheduled dates it falls back to the phase plan
+    ok(/Plumbing/.test(now), 'shows the current stage');
+    ok(/Up next/.test(now) && /Gunite/.test(now), 'shows what is next');
+  });
+
+  T('PRT16 jobProposals resolves via linkedSavedEstimateId when present (robust budget proposal join)', () => {
+    // a project whose num differs from the estimate num, linked by id (admin path with savedEstimates)
+    try { if (typeof savedEstimates !== 'undefined' && Array.isArray(savedEstimates)) savedEstimates.push({ id: 99001, num: 'EST-ORIG', customer: 'X', lines: [] }); } catch(e){}
+    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([
+      { id: 783, name: 'Linked Client', num: 'JOB-RENAMED', value: 50000, linkedSavedEstimateId: 99001, stage: 'Gunite', type: 'New Pool' }
+    ]));
+    window.jpReloadFromLocal();
+    window.Backend.setLocalRaw('ctp_proposals', JSON.stringify([
+      { id: 6001, estimateNum: 'EST-ORIG', proposalNum: 1, baseTotal: 50000, optionalTotal: 0, date: '2026-06-10T10:00:00.000Z' }
+    ]));
+    nav('clientportal'); CP.open('783');
+    const docs = pane().querySelector('.cp-panel[data-panel=docs]').innerHTML;
+    ok(/Proposal/.test(docs) && /full contract/.test(docs), 'finds the proposal via the linked estimate even though the job # was renamed');
   });
 `;
 
