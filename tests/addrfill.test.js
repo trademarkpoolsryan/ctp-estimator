@@ -103,6 +103,20 @@ const BODY = `
     window._ctpAddrSearch = null;
   });
 
+  T('ADR8 results are re-ranked so Sacramento/Placer addresses come first', () => {
+    ok(typeof window._ctpAddrRank === 'function', 'rankLocal exposed');
+    const mixed = [
+      { label:'12 Main St, Austin, TX 78701', parts:{ street:'12 Main St', city:'Austin', zip:'78701' } },      // out of state
+      { label:'34 Oak Ave, San Jose, CA 95112', parts:{ street:'34 Oak Ave', city:'San Jose', zip:'95112' } },  // CA, not NorCal-local
+      { label:'56 Lakeview Dr, Roseville, CA 95661', parts:{ street:'56 Lakeview Dr', city:'Roseville', zip:'95661' } }, // Placer
+      { label:'78 J St, Sacramento, CA 95814', parts:{ street:'78 J St', city:'Sacramento', zip:'95814' } }      // Sacramento
+    ];
+    const out = window._ctpAddrRank(mixed);
+    ok(/Roseville|Sacramento/.test(out[0].parts.city), 'a Sacramento/Placer address ranks first, got ' + out[0].parts.city);
+    ok(/Roseville|Sacramento/.test(out[1].parts.city), 'both local ones come before the rest');
+    ok(out[3].parts.city === 'Austin', 'out-of-state address sinks to the bottom, got ' + out[3].parts.city);
+  });
+
   T('ADR4 the Settings Google Places key field persists (upgrade path)', () => {
     const kf = f('biz-placesKey');
     ok(kf, 'key field present in Settings');
