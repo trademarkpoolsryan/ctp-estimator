@@ -147,7 +147,7 @@ const BODY = `
     savedEstimates.length = 0;
     savedEstimates.push({ id:6001, num:'EST-781', customer:'Brian', label:'EST-781 — Brian', lines:[] });
     projects.length = 0;
-    const p = { id:7001, name:'Brian & Emily Mclean', num:'2601', value:124500, sqft:'420', stage:'Estimate', linkedSavedEstimateId:6001 };
+    const p = { id:7001, name:'Brian & Emily Mclean', num:'2601', phone:'916-276-0785', value:124500, sqft:'420', stage:'Estimate', linkedSavedEstimateId:6001 };
     projects.push(p);
     const html = _projCardHTML(p);
     ok(/Job #2601/.test(html), 'a line shows the new active job number "Job #2601" (no EST prefix)');
@@ -155,6 +155,14 @@ const BODY = `
     ok(html.indexOf('From estimate: EST-781 — Brian') >= 0, 'a separate line shows the ORIGINAL linked saved estimate file name');
     // the two facts live on two distinct lines (separate divs), job # line before the estimate line
     ok(/Job #2601<\\/b><\\/div>[\\s\\S]*From estimate:/.test(html), 'job number and linked estimate are on separate lines');
+    ok(/color:var\\(--green\\)">Job #2601/.test(html), 'the Job # is green (signifies active)');
+    ok(html.indexOf('>Estimate<') < 0, 'the yellow "Estimate" stage badge is gone');
+    ok(/fill:var\\(--green\\)[\\s\\S]*?916-276-0785/.test(html), 'the phone icon is a green SVG');
+  });
+
+  T('LCK13 a real construction stage still shows its badge', () => {
+    const html = _projCardHTML({ id:7003, name:'Y', num:'2603', stage:'Excavation' });
+    ok(/>Excavation<\\/span>/.test(html), 'non-Estimate stages keep the stage badge');
   });
 
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
