@@ -150,9 +150,9 @@ const BODY = `
     const p = { id:7001, name:'Brian & Emily Mclean', num:'2601', value:124500, sqft:'420', stage:'Estimate', linkedSavedEstimateId:6001 };
     projects.push(p);
     const html = _projCardHTML(p);
-    ok(/#2601/.test(html), 'shows the new active job number #2601');
-    ok(html.indexOf('Est EST-781') >= 0, 'the linked badge shows the ORIGINAL estimate number, not the job #');
-    ok(html.indexOf('Est 2601') < 0, 'the link badge no longer mislabels the job number as the estimate');
+    ok(/Job #2601/.test(html), 'shows the new active job number as "Job #2601" (no EST prefix)');
+    ok(html.indexOf('Est 2601') < 0, 'the job number is never labeled as an estimate');
+    ok(html.indexOf('From EST-781 — Brian') >= 0, 'shows the ORIGINAL linked saved estimate file name');
   });
 
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
