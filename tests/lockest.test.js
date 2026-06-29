@@ -1,0 +1,118 @@
+// Saved estimate ↔ active job lock: once a saved estimate is linked to an active job it becomes
+// READ-ONLY (view, don't edit) so the quoted record is preserved — and you can branch it into a NEW
+// Job # without disrupting the original. Drives the real app globals (savedEstimates / projects) and
+// the real functions (_estLockedById, _setEstViewOnly, editSavedEstimate, saveAsNewEstimateFrom,
+// renderSavedEstimates, loadSavedEstimate).
+const { runSuite } = require('./harness');
+
+const BODY = `
+  window.saveState = function(){}; window.scheduleAutoSave = function(){}; window.showSavedToast = function(){};
+  var _alerts = []; window.alert = function(m){ _alerts.push(String(m||'')); };
+  window.confirm = function(){ return true; };
+
+  function seed(){
+    savedEstimates.length = 0;
+    savedEstimates.push({ id:5001, num:'EST-5001', customer:'Locked Client', label:'EST-5001 — Locked Client', date:'6/29/2026', lines:[] });
+    savedEstimates.push({ id:5002, num:'EST-5002', customer:'Open Client',   label:'EST-5002 — Open Client',   date:'6/29/2026', lines:[] });
+    projects.length = 0;
+    projects.push({ id:9001, name:'Locked Client', num:'EST-5001', stage:'Excavation', linkedSavedEstimateId:5001 });
+  }
+  seed();
+
+  ok(typeof _estLockedById === 'function', '_estLockedById exposed');
+  ok(typeof _setEstViewOnly === 'function', '_setEstViewOnly exposed');
+  ok(typeof saveAsNewEstimateFrom === 'function', 'saveAsNewEstimateFrom exposed');
+
+  T('LCK0 a linked estimate reads as locked; an unlinked one does not', () => {
+    ok(_estLockedById(5001) === true, 'linked estimate is locked');
+    ok(_estLockedById(5002) === false, 'unlinked estimate is editable');
+  });
+
+  T('LCK1 _setEstViewOnly toggles the read-only body class + global', () => {
+    _setEstViewOnly(5001);
+    ok(document.body.classList.contains('ctp-est-viewonly'), 'view-only class on');
+    ok(String(window._estViewOnly) === '5001', '_estViewOnly tracks the record');
+    _setEstViewOnly(null);
+    ok(!document.body.classList.contains('ctp-est-viewonly'), 'view-only class cleared');
+    ok(window._estViewOnly == null, '_estViewOnly cleared');
+  });
+
+  T('LCK2 editing Job#/name is blocked for a locked estimate, allowed otherwise', () => {
+    window._editEstId = null; _alerts.length = 0;
+    editSavedEstimate(5001);
+    ok(window._editEstId == null, 'locked estimate never enters the edit modal');
+    ok(_alerts.some(a => /locked/i.test(a)), 'explains it is locked, got: ' + _alerts.join(' | '));
+    editSavedEstimate(5002);
+    ok(String(window._editEstId) === '5002', 'an unlinked estimate still opens the edit dialog');
+    try { closeModal('modal-editest'); } catch(e){}
+    window._editEstId = null;
+  });
+
+  T('LCK3 opening a locked estimate enters read-only mode + locks the editor bar', () => {
+    nav('projects');
+    loadSavedEstimate(5001);   // routes to the Projects editor (openInProjects)
+    ok(document.body.classList.contains('ctp-est-viewonly'), 'sheet is in read-only mode');
+    ok(String(window._estViewOnly) === '5001', 'viewing the locked record');
+    const save = document.getElementById('se-save-btn');
+    ok(save && /new Job #/i.test(save.textContent), 'Save becomes "Save as new Job #", got: ' + (save && save.textContent));
+    const meta = document.getElementById('se-editmeta-btn');
+    ok(meta && meta.style.display === 'none', 'the rename pencil is hidden while locked');
+    ok(document.getElementById('se-lock-chip'), 'a "Locked — active job" chip is shown');
+  });
+
+  T('LCK4 opening an unlinked estimate is editable (no lock)', () => {
+    nav('projects');
+    loadSavedEstimate(5002);
+    ok(!document.body.classList.contains('ctp-est-viewonly'), 'not read-only');
+    ok(window._estViewOnly == null, 'no view-only record');
+    const save = document.getElementById('se-save-btn');
+    ok(save && /Save Estimate/i.test(save.textContent), 'Save reads normally, got: ' + (save && save.textContent));
+    const meta = document.getElementById('se-editmeta-btn');
+    ok(meta && meta.style.display !== 'none', 'the rename pencil is available');
+  });
+
+  T('LCK5 saveAsNewEstimateFrom clones to a new Job # and leaves the original untouched', () => {
+    seed();
+    const before = savedEstimates.length;
+    window.prompt = function(){ return 'EST-7777'; };
+    saveAsNewEstimateFrom(5001);
+    ok(savedEstimates.length === before + 1, 'a new estimate was created');
+    const copy = savedEstimates.find(s => s.num === 'EST-7777');
+    ok(copy, 'the copy carries the new Job #');
+    ok(String(copy.id) !== '5001', 'the copy has its own id');
+    ok(copy.customer === 'Locked Client', 'customer carried over');
+    ok(/EST-7777/.test(copy.label) && !/EST-5001/.test(copy.label), 'copy relabeled to the new #, got: ' + copy.label);
+    ok(_estLockedById(copy.id) === false, 'the copy is unlinked + editable');
+    // original is completely intact
+    const orig = savedEstimates.find(s => s.id === 5001);
+    ok(orig && orig.num === 'EST-5001' && orig.label === 'EST-5001 — Locked Client', 'original Job#/name unchanged');
+    ok(_estLockedById(5001) === true, 'original is still the locked active-job estimate');
+  });
+
+  T('LCK6 a duplicate new Job # is rejected (no clone created)', () => {
+    seed();
+    const before = savedEstimates.length;
+    _alerts.length = 0;
+    window.prompt = function(){ return 'EST-5002'; };   // already used
+    saveAsNewEstimateFrom(5001);
+    ok(savedEstimates.length === before, 'no estimate created for a clashing Job #');
+    ok(_alerts.some(a => /already used/i.test(a)), 'warns about the clash, got: ' + _alerts.join(' | '));
+  });
+
+  T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
+    seed();
+    nav('projects');
+    renderSavedEstimates();
+    const locked = document.querySelector('[data-selid="5001"]');
+    const open = document.querySelector('[data-selid="5002"]');
+    ok(locked && open, 'both rows render');
+    ok(/>\\s*View\\s*</.test(locked.innerHTML), 'linked row primary action is View');
+    ok(/New #/.test(locked.innerHTML), 'linked row offers "New #"');
+    ok(locked.innerHTML.indexOf('🔒') >= 0, 'linked row shows the lock instead of the rename pencil');
+    ok(/i-pencil/.test(open.innerHTML) && /New #/.test(open.innerHTML) === false, 'unlinked row keeps the pencil, no New #');
+    ok(/>\\s*Load\\s*</.test(open.innerHTML), 'unlinked row primary action is Load');
+  });
+`;
+
+if (require.main === module) runSuite('SAVED ESTIMATE LOCK (active-job read-only + Save as new #)', BODY).then(code => process.exit(code));
+module.exports = { BODY };

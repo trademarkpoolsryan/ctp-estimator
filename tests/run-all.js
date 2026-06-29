@@ -22,6 +22,7 @@ const SUITES = [
   ['CLIENT PORTAL OVERHAUL (tabs + curated finishes)', require('./portal.test').BODY],
   ['JOB PORTAL — SITE PHOTOS (stage-tagged)', require('./jobphotos.test').BODY],
   ['ADDRESS AUTOFILL (customer job info)', require('./addrfill.test').BODY],
+  ['SAVED ESTIMATE LOCK (active-job read-only + Save as new #)', require('./lockest.test').BODY],
 ];
 
 (async () => {
