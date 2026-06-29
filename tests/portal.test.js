@@ -215,13 +215,13 @@ const BODY = `
     window.jpReloadFromLocal();
     localStorage.setItem('ctp_docs_781', JSON.stringify([
       { id:'x', name:'a.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,AAAA', tagId:'t-photos', stage:'Excavation', uploadedAt:'Jun 1' },
-      { id:'y', name:'b.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,BBBB', tagId:'t-photos', stage:'Gunite / Shell', uploadedAt:'Jun 5' }
+      { id:'y', name:'b.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,BBBB', tagId:'t-photos', stage:'Gunite', uploadedAt:'Jun 5' }
     ]));
     nav('clientportal'); CP.open('781');
     const build = pane().querySelector('.cp-panel[data-panel=build]');
     const heads = Array.prototype.map.call(build.querySelectorAll('.cp-ph-stage'), e => e.textContent);
-    ok(heads.indexOf('Excavation') >= 0 && heads.indexOf('Gunite / Shell') >= 0, 'stage headers present');
-    ok(heads.indexOf('Excavation') < heads.indexOf('Gunite / Shell'), 'grouped in build order');
+    ok(heads.indexOf('Excavation') >= 0 && heads.indexOf('Gunite') >= 0, 'granular stage headers present');
+    ok(heads.indexOf('Excavation') < heads.indexOf('Gunite'), 'grouped in schedule build order');
     localStorage.removeItem('ctp_docs_781');
   });
 `;

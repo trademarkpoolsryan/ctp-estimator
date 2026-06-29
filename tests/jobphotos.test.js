@@ -12,7 +12,7 @@ const BODY = `
   window.jpReloadFromLocal();
   localStorage.setItem('ctp_docs_850', JSON.stringify([
     { id:'a', name:'dig.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,AAAA', tagId:'t-photos', stage:'Excavation', uploadedAt:'Jun 1, 2026' },
-    { id:'b', name:'gun.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,BBBB', tagId:'t-photos', stage:'Gunite / Shell', uploadedAt:'Jun 5, 2026' },
+    { id:'b', name:'gun.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,BBBB', tagId:'t-photos', stage:'Gunite', uploadedAt:'Jun 5, 2026' },
     { id:'c', name:'permit.pdf', type:'application/pdf', dataUrl:'data:application/pdf;base64,JVBE', tagId:'t-permits', uploadedAt:'Jun 2, 2026' }
   ]));
 
@@ -31,8 +31,10 @@ const BODY = `
     ok(ph && !ph.hidden, 'jp-photos panel visible');
     ok(ph.querySelector('#jp-ph-file'), 'file input present');
     ok(ph.querySelector('#jp-ph-stage'), 'build-stage selector present');
-    // the stage selector offers the build stages
-    ok(/Excavation/.test(ph.querySelector('#jp-ph-stage').innerHTML), 'stage options include build phases');
+    // the selector offers the GRANULAR schedule stages, not the coarse client phases
+    const sel = ph.querySelector('#jp-ph-stage').innerHTML;
+    ok(/Excavation/.test(sel) && /Rough Plumbing/.test(sel) && /Rebar/.test(sel) && /Gunite/.test(sel), 'offers the schedule build stages');
+    ok(!/Plumbing &amp; Steel/.test(sel), 'NOT the coarse 7-phase list');
   });
 
   T('JPH1 existing site photos render grouped by stage; non-photo docs are excluded', () => {
@@ -43,11 +45,11 @@ const BODY = `
   });
 
   T('JPH2 re-tagging a photo moves it to the new stage and persists', () => {
-    jpPhotoSetStage('a', 'Tile & Coping');
+    jpPhotoSetStage('a', 'Tile');
     const arr = JSON.parse(localStorage.getItem('ctp_docs_850'));
     const a = arr.filter(d => d.id === 'a')[0];
-    ok(a && a.stage === 'Tile & Coping', 'stage updated + persisted to ctp_docs');
-    ok(/Tile &amp; Coping/.test(ptab().innerHTML), 're-rendered under the new stage');
+    ok(a && a.stage === 'Tile', 'stage updated + persisted to ctp_docs');
+    ok(/Tile/.test(ptab().innerHTML), 're-rendered under the new stage');
   });
 
   T('JPH3 deleting a photo removes it from the store and the gallery', () => {
