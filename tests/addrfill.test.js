@@ -56,6 +56,31 @@ const BODY = `
     window._ctpAddrSearch = null;
   });
 
+  await TA('ADR5 a failed lookup shows a status note (never silently dead), no items', async () => {
+    f('e-addr').value='';
+    window._ctpAddrSearch = function(){ return Promise.reject(new Error('network down')); };
+    f('e-addr').value = '900 Failing Rd';
+    f('e-addr').dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 360));
+    const box = document.getElementById('ctp-addr-sugg');
+    ok(box && box.style.display === 'block', 'dropdown shown with a message');
+    ok(box.querySelectorAll('.ctp-addr-item').length === 0, 'no selectable suggestions on error');
+    ok(/unavailable|manually/i.test(box.textContent), 'shows an "enter manually" status, got: ' + box.textContent);
+    window._ctpAddrSearch = null;
+  });
+
+  await TA('ADR6 an empty result set shows a "no match" note rather than nothing', async () => {
+    window._ctpAddrSearch = function(){ return Promise.resolve([]); };
+    f('e-addr').value = '0000 Nowhere Pl';
+    f('e-addr').dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 360));
+    const box = document.getElementById('ctp-addr-sugg');
+    ok(box && box.style.display === 'block', 'dropdown shown');
+    ok(box.querySelectorAll('.ctp-addr-item').length === 0, 'no items');
+    ok(/no matching/i.test(box.textContent), 'shows a no-match status, got: ' + box.textContent);
+    window._ctpAddrSearch = null;
+  });
+
   T('ADR4 the Settings Google Places key field persists (upgrade path)', () => {
     const kf = f('biz-placesKey');
     ok(kf, 'key field present in Settings');
