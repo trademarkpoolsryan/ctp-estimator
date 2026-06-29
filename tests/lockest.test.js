@@ -191,6 +191,25 @@ const BODY = `
     ok(/i-pencil/.test(open.innerHTML) && /New #/.test(open.innerHTML) === false, 'unlinked row keeps the pencil, no New #');
     ok(/>\\s*Load\\s*</.test(open.innerHTML), 'unlinked row primary action is Load');
   });
+
+  T('LCK15 an active job can be closed out to Completed, and reopened', () => {
+    window.confirm = function(){ return true; };
+    window.saveState = function(){}; window.renderProjects = function(){};
+    ok(typeof closeOutJob === 'function' && typeof reopenJob === 'function', 'close/reopen exposed');
+    projects.length = 0;
+    projects.push({ id:8001, name:'Mid Job', num:'2610', stage:'Excavation' });
+    let html = _projCardHTML(projects[0]);
+    ok(/closeOutJob\\(0\\)/.test(html) && /Close out/.test(html), 'active card has a Close out button');
+    ok(!/reopenJob/.test(html), 'no Reopen on an active card');
+    closeOutJob(0);
+    ok(projects[0].stage === 'Complete', 'job moved to Complete');
+    ok(projects[0]._preCompleteStage === 'Excavation', 'remembers the prior stage for reopen');
+    html = _projCardHTML(projects[0]);
+    ok(/reopenJob\\(0\\)/.test(html) && /Reopen/.test(html), 'completed card offers Reopen');
+    ok(/color:var\\(--red\\)">Job #2610/.test(html), 'completed Job # is red');
+    reopenJob(0);
+    ok(projects[0].stage === 'Excavation', 'reopen restores the previous active stage');
+  });
 `;
 
 if (require.main === module) runSuite('SAVED ESTIMATE LOCK (active-job read-only + Save as new #)', BODY).then(code => process.exit(code));
