@@ -155,7 +155,7 @@ const BODY = `
     ok(html.indexOf('From estimate: EST-781 — Brian') >= 0, 'a separate line shows the ORIGINAL linked saved estimate file name');
     // the two facts live on two distinct lines (separate divs), job # line before the estimate line
     ok(/Job #2601<\\/b><\\/div>[\\s\\S]*From estimate:/.test(html), 'job number and linked estimate are on separate lines');
-    ok(/color:var\\(--green\\)">Job #2601/.test(html), 'the Job # is green (signifies active)');
+    ok(/color:var\\(--amber\\)">Job #2601/.test(html), 'the Job # is yellow/amber');
     ok(html.indexOf('>Estimate<') < 0, 'the yellow "Estimate" stage badge is gone');
     ok(/fill:var\\(--green\\)[\\s\\S]*?916-276-0785/.test(html), 'the phone icon is a green SVG');
   });
