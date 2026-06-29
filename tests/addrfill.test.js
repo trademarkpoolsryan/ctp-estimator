@@ -81,6 +81,28 @@ const BODY = `
     window._ctpAddrSearch = null;
   });
 
+  await TA('ADR7 the New Estimate modal field (ne-addr) also autofills its own city/zip', async () => {
+    ok(f('ne-addr'), '#ne-addr exists');
+    ok(f('ne-addr').getAttribute('autocomplete') === 'off', 'modal address field is wired');
+    f('ne-addr').value=''; f('ne-city').value=''; f('ne-zip').value=''; f('e-addr').value='';
+    window._ctpAddrSearch = function(){ return Promise.resolve([
+      { label:'88 Lagoon Dr, Roseville, CA 95661', parts:{ street:'88 Lagoon Dr', city:'Roseville', zip:'95661' } }
+    ]); };
+    f('ne-addr').dispatchEvent(new Event('focus', {bubbles:true}));
+    f('ne-addr').value = '88 Lagoon';
+    f('ne-addr').dispatchEvent(new Event('input', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 360));
+    const box = document.getElementById('ctp-addr-sugg');
+    const items = box.querySelectorAll('.ctp-addr-item');
+    ok(items.length === 1, 'suggestion shown for the modal field, got ' + items.length);
+    items[0].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+    ok(f('ne-addr').value === '88 Lagoon Dr', 'modal street filled');
+    ok(f('ne-city').value === 'Roseville', 'modal city filled');
+    ok(f('ne-zip').value === '95661', 'modal zip filled');
+    ok(f('e-addr').value !== '88 Lagoon Dr', 'the sheet field was NOT touched (correct group targeted)');
+    window._ctpAddrSearch = null;
+  });
+
   T('ADR4 the Settings Google Places key field persists (upgrade path)', () => {
     const kf = f('biz-placesKey');
     ok(kf, 'key field present in Settings');
