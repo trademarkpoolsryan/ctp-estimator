@@ -1,7 +1,7 @@
 # Generated one-off artifacts (roadmap exports, screenshots, etc.)
 CTP_Estimator_Roadmap.pdf
 *.pdf
-portal-*.png
+*.png
 
 # Test deps
 tests/node_modules/

@@ -20,6 +20,7 @@ const SUITES = [
   ['CLIENT DOCUMENT UPLOADS (portal Documents card)', require('./clientdocs.test').BODY],
   ['ATTENTION STRIP (portal action items)', require('./attention.test').BODY],
   ['CLIENT PORTAL OVERHAUL (tabs + curated finishes)', require('./portal.test').BODY],
+  ['JOB PORTAL — SITE PHOTOS (stage-tagged)', require('./jobphotos.test').BODY],
 ];
 
 (async () => {

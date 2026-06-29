@@ -1,6 +1,8 @@
-// "Client view" — one consistent pill toggle (the .set-switch teal slider) everywhere we offer a
-// client preview. Flipping it on hides the admin chrome and lands on the job as the client sees it;
-// off restores admin. Reachable from the Job Portal toolbar and the Client Portal detail.
+// "Client view" — one consistent pill toggle (the .set-switch teal slider) wherever we offer a client
+// preview. Flipping it on renders the portal's CLIENT-facing view (in-portal admin controls hidden) but
+// KEEPS the admin sidebar nav visible so the admin is never trapped in client chrome; off restores the
+// admin portal view. Navigating away cleanly drops the preview. Reachable from the Job Portal toolbar
+// and the Client Portal detail.
 const { runSuite } = require('./harness');
 
 const BODY = `
@@ -13,8 +15,8 @@ const BODY = `
   }]));
   window.jpReloadFromLocal();
 
-  function sidebarHidden(){ var n = document.querySelector('.sb .nav'); return !!(n && n.style.display === 'none'); }
-  function role(){ return document.body.getAttribute('data-ctp-role'); }
+  function navHidden(){ var n = document.querySelector('.sb .nav'); return !!(n && n.style.display === 'none'); }
+  function inPreview(){ return document.body.classList.contains('ctp-client-preview'); }
   function cpTgl(){ return document.getElementById('cp-vac-toggle'); }
 
   T('VAC0 the Job Portal control is the shared "Client view" pill toggle', () => {
@@ -36,35 +38,38 @@ const BODY = `
     ok(/All client portals/.test(document.getElementById('cp-pane').innerHTML), 'admin back present when browsing');
   });
 
-  T('VAC2 flipping the toggle ON enters preview: chrome hidden, toggle checked (teal)', () => {
+  T('VAC2 toggle ON shows the client view but KEEPS the admin nav visible (never trapped)', () => {
+    CP.tab('selections');                 // a tab that has an admin-only control to verify it hides
     CP.toggleClientView(true);
-    ok(role() === 'client', 'role client');
-    ok(sidebarHidden(), 'admin sidebar hidden');
+    ok(inPreview(), 'preview flag set (portal renders client view)');
+    ok(!navHidden(), 'admin sidebar nav STAYS visible in preview');
     const t = cpTgl();
     ok(t && t.checked, 'toggle is ON (checked → teal track)');
-    ok(/All client portals/.test(document.getElementById('cp-pane').innerHTML), 'header row stays the same (back link still present in preview)');
+    ok(!document.getElementById('cp-fin-sel'), 'in-portal admin control (Add finish) hidden in client view');
     ok(document.getElementById('cp-msg-text'), 'job detail rendered (not the picker)');
   });
 
-  T('VAC3 flipping it OFF exits preview back to the admin Client Portal', () => {
+  T('VAC3 flipping it OFF restores the admin portal view, nav still visible', () => {
     CP.toggleClientView(false);
-    ok(role() === 'admin', 'role admin');
-    ok(!sidebarHidden(), 'sidebar restored');
+    ok(!inPreview(), 'preview flag cleared');
+    ok(!navHidden(), 'nav visible');
     const cp = document.getElementById('page-clientportal');
     ok(cp && cp.classList.contains('active'), 'still on the client portal page');
     ok(cpTgl() && !cpTgl().checked, 'toggle back OFF');
   });
 
-  T('VAC4 the Job Portal entry point drives the same preview (toggle on the portal goes checked)', () => {
+  T('VAC4 the Job Portal entry point drives the same preview, nav still visible', () => {
     window.ctpToggleClientView(true, '777', { kind:'job', idx: -1 });
-    ok(role() === 'client', 'role client');
-    ok(sidebarHidden(), 'sidebar hidden');
+    ok(inPreview(), 'preview flag set');
+    ok(!navHidden(), 'nav visible during preview');
     ok(cpTgl() && cpTgl().checked, 'portal toggle checked during preview');
   });
-  T('VAC5 exit restores the admin chrome', () => {
-    window.ctpToggleClientView(false);
-    ok(role() === 'admin', 'role admin');
-    ok(!sidebarHidden(), 'sidebar restored');
+
+  T('VAC5 navigating away via the nav cleanly exits the preview', () => {
+    ok(inPreview(), 'starts in preview');
+    nav('projects');                       // click any other admin page
+    ok(!inPreview(), 'preview dropped on navigation away');
+    ok(!navHidden(), 'nav visible');
   });
 `;
 
