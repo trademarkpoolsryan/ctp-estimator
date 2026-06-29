@@ -150,9 +150,11 @@ const BODY = `
     const p = { id:7001, name:'Brian & Emily Mclean', num:'2601', value:124500, sqft:'420', stage:'Estimate', linkedSavedEstimateId:6001 };
     projects.push(p);
     const html = _projCardHTML(p);
-    ok(/Job #2601/.test(html), 'shows the new active job number as "Job #2601" (no EST prefix)');
+    ok(/Job #2601/.test(html), 'a line shows the new active job number "Job #2601" (no EST prefix)');
     ok(html.indexOf('Est 2601') < 0, 'the job number is never labeled as an estimate');
-    ok(html.indexOf('From EST-781 — Brian') >= 0, 'shows the ORIGINAL linked saved estimate file name');
+    ok(html.indexOf('From estimate: EST-781 — Brian') >= 0, 'a separate line shows the ORIGINAL linked saved estimate file name');
+    // the two facts live on two distinct lines (separate divs), job # line before the estimate line
+    ok(/Job #2601<\\/b><\\/div>[\\s\\S]*From estimate:/.test(html), 'job number and linked estimate are on separate lines');
   });
 
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
