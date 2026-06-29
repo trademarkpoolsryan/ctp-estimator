@@ -143,6 +143,18 @@ const BODY = `
     ok(projects.length === before, 'no active job created when the prompt is cancelled');
   });
 
+  T('LCK12 the active job card shows the new Job # AND the original linked estimate', () => {
+    savedEstimates.length = 0;
+    savedEstimates.push({ id:6001, num:'EST-781', customer:'Brian', label:'EST-781 — Brian', lines:[] });
+    projects.length = 0;
+    const p = { id:7001, name:'Brian & Emily Mclean', num:'2601', value:124500, sqft:'420', stage:'Estimate', linkedSavedEstimateId:6001 };
+    projects.push(p);
+    const html = _projCardHTML(p);
+    ok(/#2601/.test(html), 'shows the new active job number #2601');
+    ok(html.indexOf('Est EST-781') >= 0, 'the linked badge shows the ORIGINAL estimate number, not the job #');
+    ok(html.indexOf('Est 2601') < 0, 'the link badge no longer mislabels the job number as the estimate');
+  });
+
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
     seed();
     nav('projects');
