@@ -209,6 +209,21 @@ const BODY = `
     const docs = pane().querySelector('.cp-panel[data-panel=docs]').innerHTML;
     ok(/Proposal/.test(docs) && /full contract/.test(docs), 'finds the proposal via the linked estimate even though the job # was renamed');
   });
+
+  T('PRT17 client Site photos group under stage headers in build order', () => {
+    window.Backend.setLocalRaw('ctp_projects', JSON.stringify([{ id: 781, name: 'Redesign Client', address: '5 Pool Ln', num: 'EST-781', value: 90000, collected: 0, stage: 'Plumbing & Steel', type: 'New Pool', date: '6/26/2026' }]));
+    window.jpReloadFromLocal();
+    localStorage.setItem('ctp_docs_781', JSON.stringify([
+      { id:'x', name:'a.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,AAAA', tagId:'t-photos', stage:'Excavation', uploadedAt:'Jun 1' },
+      { id:'y', name:'b.jpg', type:'image/jpeg', dataUrl:'data:image/jpeg;base64,BBBB', tagId:'t-photos', stage:'Gunite / Shell', uploadedAt:'Jun 5' }
+    ]));
+    nav('clientportal'); CP.open('781');
+    const build = pane().querySelector('.cp-panel[data-panel=build]');
+    const heads = Array.prototype.map.call(build.querySelectorAll('.cp-ph-stage'), e => e.textContent);
+    ok(heads.indexOf('Excavation') >= 0 && heads.indexOf('Gunite / Shell') >= 0, 'stage headers present');
+    ok(heads.indexOf('Excavation') < heads.indexOf('Gunite / Shell'), 'grouped in build order');
+    localStorage.removeItem('ctp_docs_781');
+  });
 `;
 
 if (require.main === module) runSuite('CLIENT PORTAL OVERHAUL (tabs + curated finishes)', BODY).then(code => process.exit(code));
