@@ -35,6 +35,7 @@ const BODY = `
     const sel = ph.querySelector('#jp-ph-stage').innerHTML;
     ok(/Excavation/.test(sel) && /Rough Plumbing/.test(sel) && /Rebar/.test(sel) && /Gunite/.test(sel), 'offers the schedule build stages');
     ok(!/Plumbing &amp; Steel/.test(sel), 'NOT the coarse 7-phase list');
+    ok(!/Inspection/.test(sel), 'inspection gates are excluded (no photos for those)');
   });
 
   T('JPH1 existing site photos render grouped by stage; non-photo docs are excluded', () => {
