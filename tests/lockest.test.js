@@ -165,6 +165,19 @@ const BODY = `
     ok(/>Excavation<\\/span>/.test(html), 'non-Estimate stages keep the stage badge');
   });
 
+  T('LCK14 a completed job shows a RED Job # and still renders the full card', () => {
+    savedEstimates.length = 0;
+    savedEstimates.push({ id:6001, num:'EST-781', customer:'Brian', label:'EST-781 — Brian', lines:[] });
+    const p = { id:7004, name:'Done Client', num:'2604', phone:'555-1212', value:90000, sqft:'400', stage:'Complete', address:'9 Pool Ln', linkedSavedEstimateId:6001 };
+    const html = _projCardHTML(p);
+    ok(/color:var\\(--red\\)">Job #2604/.test(html), 'completed Job # is red');
+    ok(html.indexOf('var(--amber)') < 0, 'not amber once complete');
+    // still shows everything like an active card
+    ok(html.indexOf('$90,000') >= 0 && html.indexOf('400 sq ft') >= 0, 'value + sq ft still shown');
+    ok(html.indexOf('From estimate: EST-781 — Brian') >= 0, 'linked estimate line still shown');
+    ok(html.indexOf('9 Pool Ln') >= 0, 'address still shown');
+  });
+
   T('LCK7 the Saved Estimates list locks the linked row and offers View + New #', () => {
     seed();
     nav('projects');
