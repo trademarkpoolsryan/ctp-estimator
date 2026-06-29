@@ -245,10 +245,10 @@ const BODY = `
     CP.toggleSel(i0);
     chip = pane().querySelectorAll('#cp-sec-selections .cp-sel-item')[0].querySelector('.cp-chip');
     ok(/Selected/i.test(chip.textContent) && /cp-sel-green/.test(chip.className), 'admin final = green "Selected", got ' + chip.textContent + ' / ' + chip.className);
-    // toggles back to yellow
+    // cycles all the way back to neutral "Choose"
     CP.toggleSel(i0);
     chip = pane().querySelectorAll('#cp-sec-selections .cp-sel-item')[0].querySelector('.cp-chip');
-    ok(/Chosen/i.test(chip.textContent) && /cp-sel-yellow/.test(chip.className), 'green toggles back to yellow');
+    ok(/Choose/i.test(chip.textContent) && !/cp-sel-(yellow|green)/.test(chip.className), 'green cycles back to neutral "Choose", got ' + chip.textContent + ' / ' + chip.className);
   });
 
   T('PRT19 client side reads Select → Selected(yellow) → Confirmed(green), and can edit too', () => {
