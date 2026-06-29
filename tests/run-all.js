@@ -21,6 +21,7 @@ const SUITES = [
   ['ATTENTION STRIP (portal action items)', require('./attention.test').BODY],
   ['CLIENT PORTAL OVERHAUL (tabs + curated finishes)', require('./portal.test').BODY],
   ['JOB PORTAL — SITE PHOTOS (stage-tagged)', require('./jobphotos.test').BODY],
+  ['ADDRESS AUTOFILL (customer job info)', require('./addrfill.test').BODY],
 ];
 
 (async () => {
