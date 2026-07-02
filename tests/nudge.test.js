@@ -66,6 +66,18 @@ const BODY = `
     ok(disp('prop-stale-note') === 'none', 'clears after removing it');
   });
 
+  T('N3b USER FLOW: pump added via the specs Add-Ons then deleted on the sheet clears the pill', () => {
+    // toggleTmpl is the real Add-Ons checkbox path; removeGroup is the real sheet ✕. Auto-notes
+    // are live here (refreshNotesLive runs in updateTotals), so this also proves the notes
+    // bullet the pump adds is removed again when the pump rows are deleted.
+    var before = estLines.length;
+    toggleTmpl('Additional Pump'); renderEst(); updateTotals();
+    ok(disp('prop-stale-note') === 'inline-flex', 'shows after adding via specs');
+    for (var i = estLines.length - 1; i >= before; i--) removeGroup(i);
+    updateTotals();
+    ok(disp('prop-stale-note') === 'none', 'clears after deleting the pump rows on the sheet');
+  });
+
   T('N4 price target shows; clearing the target clears the pill', () => {
     setLineTarget(GI, II, '$99999'); renderEst();
     ok(disp('prop-stale-note') === 'inline-flex', 'shows after a target');
@@ -81,6 +93,21 @@ const BODY = `
     upd(GI, II, 'qty', String(orig));
     ok(disp('prop-stale-note') === 'none', 'and still clears on revert');
     setF('e-num', 'EST-2654');
+  });
+
+  T('N6a a sig from an OLDER formula version falls back to totals (never pinned stale)', () => {
+    var grand = Math.round(estDispGrand(estLines));
+    localStorage.setItem('ctp_proposals', JSON.stringify([{ id: 8, seriesKey: 'Pool 1__EST-2654',
+      poolSheet: _activeSheetName(), estimateNum: 'EST-2654', label: 'old-formula', date: new Date().toISOString(),
+      sig: 'zzz111.4242',            // pre-versioning format — can never match the current formula
+      baseTotal: grand, optionalTotal: 0 }]));
+    renderEst();
+    ok(disp('prop-stale-note') === 'none', 'old-version sig + matching grand → NOT stale');
+    var orig = estLines[GI].items[II].qty;
+    upd(GI, II, 'qty', String(orig + 3));
+    ok(disp('prop-stale-note') === 'inline-flex', 'old-version sig + grand drift → nudges');
+    upd(GI, II, 'qty', String(orig));
+    ok(disp('prop-stale-note') === 'none', 'and clears again on revert');
   });
 
   T('N6 legacy record without a signature falls back to grand-total drift', () => {
