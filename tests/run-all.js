@@ -23,6 +23,7 @@ const SUITES = [
   ['JOB PORTAL — SITE PHOTOS (stage-tagged)', require('./jobphotos.test').BODY],
   ['ADDRESS AUTOFILL (customer job info)', require('./addrfill.test').BODY],
   ['SAVED ESTIMATE LOCK (active-job read-only + Save as new #)', require('./lockest.test').BODY],
+  ['PROPOSAL NUDGE (stale pill, both toolbars)', require('./nudge.test').BODY],
 ];
 
 (async () => {
